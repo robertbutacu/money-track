@@ -1,8 +1,11 @@
 package server
 
-import akka.http.scaladsl.model.HttpResponse
-import data.Transaction
+import com.mongodb.WriteResult
+import data.{Common, Transaction}
 
 object POSTHandler {
-  def postTransaction(transaction: Transaction): HttpResponse = ???
+  def postTransaction(transaction: Transaction): WriteResult = {
+    val transactionRecord = Common.buildMongoDbObject(transaction)
+    MongoFactory.collection.save(transactionRecord)
+  }
 }
