@@ -15,4 +15,8 @@ object DELETEHandler {
     else
       HttpResponse(StatusCode.int2StatusCode(200))
   }
+
+  def deleteAll(): Unit = {
+    MongoFactory.collection.drop()
+  }
 }
