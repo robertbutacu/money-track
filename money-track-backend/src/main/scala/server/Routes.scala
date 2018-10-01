@@ -46,7 +46,7 @@ object Routes extends Marshaller {
         }
         }
       }
-    } ~ path("amount/interval") {
+    } ~ path("amount" / "interval") {
       get {
         parameter("start".as[String], "end".as[String]) { case (start, end) =>
           val startDate = dateFormatter.parse(start)
@@ -55,14 +55,14 @@ object Routes extends Marshaller {
           complete(StatusCodes.OK, List(amount))
         }
       }
-    } ~ path("amount/last") {
+    } ~ path("amount" / "last") {
       get {
         parameter("days".as[Int]) { n =>
           val endDate = java.sql.Date.valueOf(LocalDate.now)
           val startDate = java.sql.Date.valueOf(LocalDate.now.minusDays(n))
 
           val amount = GETHandler.getAmountSpentByPeriod(startDate, endDate)
-          complete(StatusCodes.OK)
+          complete(StatusCodes.OK, List(amount))
         }
       }
     } ~ path("transactions") {
@@ -72,29 +72,29 @@ object Routes extends Marshaller {
 
           println(s"*** Formatted date: $formattedDate for initial input $date")
 
-          val amount = GETHandler.getByDay(formattedDate)
+          val transactions = GETHandler.getByDay(formattedDate)
 
-          println(s"*** Found amount: $amount")
-          complete(StatusCodes.OK, List(amount))
+          println(s"*** Found transactions: $transactions")
+          complete(StatusCodes.OK, List(transactions))
         }
       }
-    } ~ path("transactions/interval") {
+    } ~ path("transactions" / "interval") {
       get {
         parameter("start".as[String], "end".as[String]) { case (start, end) =>
           val startDate = dateFormatter.parse(start)
           val endDate = dateFormatter.parse(end)
-          val amount = GETHandler.getByPeriod(startDate, endDate)
-          complete(StatusCodes.OK, List(amount))
+          val transactions = GETHandler.getByPeriod(startDate, endDate)
+          complete(StatusCodes.OK, List(transactions))
         }
       }
-    } ~ path("transactions/last") {
+    } ~ path("transactions" / "last") {
       get {
         parameter("days".as[Int]) { n =>
           val endDate = java.sql.Date.valueOf(LocalDate.now)
           val startDate = java.sql.Date.valueOf(LocalDate.now.minusDays(n))
 
-          val amount = GETHandler.getByPeriod(startDate, endDate)
-          complete(StatusCodes.OK)
+          val transactions = GETHandler.getByPeriod(startDate, endDate)
+          complete(StatusCodes.OK, List(transactions))
         }
       }
     }
