@@ -8,6 +8,8 @@ import com.mongodb.casbah.Imports._
 case class Transaction(name: String, category: Option[String] = None, amount: Double = 0.0, date: Option[Date])
 
 object Common {
+  val dateFormatter = new SimpleDateFormat("dd-MM-YYYY")
+
   /**
     * Convert a Transaction object into a BSON format that MongoDb can store.
     */
@@ -18,7 +20,7 @@ object Common {
     builder += "name" -> transaction.name
     builder += "category" -> transaction.category
     builder += "amount" -> transaction.amount
-    builder += "date" -> new SimpleDateFormat("dd-mm-YYYY").format(formattedDate)
+    builder += "date" -> dateFormatter.format(formattedDate)
 
     builder.result
   }
@@ -34,6 +36,11 @@ object Common {
     Transaction(mongoObject.getAsOrElse[String]("name", ""),
       mongoObject.getAs[String]("category"),
       mongoObject.getAsOrElse[Double]("amount", 0.0),
-      mongoObject.getAs[Date]("date"))
+      mongoObject.getAs[String]("date") match {
+        case Some(date) =>  Some(dateFormatter.parse(date))
+        case None => None
+      })
   }
+
+
 }

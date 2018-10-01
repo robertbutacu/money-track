@@ -8,7 +8,8 @@ import data.{Common, Transaction}
 
 object GETHandler {
   def getByDay(day: Date): List[Transaction] = {
-    val toFindRecord = new SimpleDateFormat("dd-mm-YYYY").format(day)
+    val toFindRecord = new SimpleDateFormat("dd-MM-yyyy").format(day)
+    println(s"*** To find record $toFindRecord")
     val results = MongoFactory.collection.find(Common.buildDateObject(toFindRecord)).toIterable
 
     convertToList(results)
