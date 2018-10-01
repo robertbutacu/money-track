@@ -1,8 +1,8 @@
-package server
+package server.services
 
 import com.mongodb.WriteResult
-import data.{Common, Transaction}
 import com.mongodb.casbah.Imports._
+import data.{Common, Transaction}
 
 object POSTHandler {
   def postTransaction(transaction: Transaction): WriteResult = {

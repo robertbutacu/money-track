@@ -1,9 +1,9 @@
-package server
+package server.services
 
 import java.text.SimpleDateFormat
 import java.util.Date
-import com.mongodb.casbah.Imports._
 
+import com.mongodb.casbah.Imports._
 import data.{Common, Transaction}
 
 object GETHandler {

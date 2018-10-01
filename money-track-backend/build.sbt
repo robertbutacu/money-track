@@ -15,6 +15,7 @@ libraryDependencies ++= {
     "org.rogach" %% "scallop" % "3.1.3",
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-http" % "10.1.5",
+    "com.typesafe.akka" %% "akka-stream" % "2.5.12",
     "com.typesafe.akka" %% "akka-http-testkit" % "10.1.5" % Test,
     "org.mongodb" %% "casbah" % "3.1.1",
     "org.slf4j" % "slf4j-simple" % "1.6.4"
