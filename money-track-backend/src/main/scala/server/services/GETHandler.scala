@@ -24,19 +24,19 @@ object GETHandler {
     convertToList(results)
   }
 
-  def getAmountSpentByDate(day: Date): BigDecimal = {
+  def getAmountSpentByDate(day: Date): Double = {
     val transactions = getByDay(day)
 
-    transactions.foldLeft(0: BigDecimal) {
+    transactions.foldLeft(0.0) {
       case (acc, curr) =>
         acc + curr.amount
     }
   }
 
-  def getAmountSpentByPeriod(start: Date, end: Date): BigDecimal = {
+  def getAmountSpentByPeriod(start: Date, end: Date): Double = {
     val transactions = getByPeriod(start, end)
 
-    transactions.foldLeft(0: BigDecimal) {
+    transactions.foldLeft(0.0) {
       case (acc, curr) =>
         acc + curr.amount
     }

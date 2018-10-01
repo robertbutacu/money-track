@@ -5,7 +5,7 @@ import java.util.{Calendar, Date}
 
 import com.mongodb.casbah.Imports._
 
-case class Transaction(name: Option[String], category: Option[String] = None, amount: Double = 0.0, date: Option[Date])
+case class Transaction(name: String, category: Option[String] = None, amount: Double = 0.0, date: Option[Date])
 
 object Common {
   /**
@@ -31,9 +31,9 @@ object Common {
   }
 
   def fromMongoDbObject(mongoObject: DBObject): Transaction = {
-    Transaction(mongoObject.getAs[String]("name"),
+    Transaction(mongoObject.getAsOrElse[String]("name", ""),
       mongoObject.getAs[String]("category"),
-      mongoObject.getAs[Double]("amount").getOrElse(0.0),
+      mongoObject.getAsOrElse[Double]("amount", 0.0),
       mongoObject.getAs[Date]("date"))
   }
 }
