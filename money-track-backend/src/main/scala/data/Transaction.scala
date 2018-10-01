@@ -9,7 +9,7 @@ case class Transaction(name: Option[String], category: Option[String] = None, am
 
 object Common {
   /**
-    * Convert a Stock object into a BSON format that MongoDb can store.
+    * Convert a Transaction object into a BSON format that MongoDb can store.
     */
   def buildMongoDbObject(transaction: Transaction): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
