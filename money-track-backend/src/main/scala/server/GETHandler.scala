@@ -4,13 +4,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import com.mongodb.casbah.Imports._
 
-
 import data.{Common, Transaction}
 
 object GETHandler {
   def getByDay(day: Date): List[Transaction] = {
     val toFindRecord = new SimpleDateFormat("dd-mm-YYYY").format(day)
-    val results = MongoFactory.collection.find(toFindRecord).toIterable
+    val results = MongoFactory.collection.find(Common.buildDateObject(toFindRecord)).toIterable
 
     convertToList(results)
   }
