@@ -17,9 +17,11 @@ object GETHandler {
 
   def getByPeriod(start: Date, end: Date): List[Transaction] = {
     val results = MongoFactory.collection.filter { record =>
-      val transactionDate = record.getAs[Date]("date")
+      val transactionDate = record.getAs[String]("date")
 
-      transactionDate.forall(date => date.after(start) && date.before(end))
+      transactionDate.forall{date =>
+        val formattedDate = Common.dateFormatter.parse(date)
+        formattedDate.after(start) && formattedDate.before(end)}
     }
 
     convertToList(results)
