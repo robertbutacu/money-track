@@ -2,7 +2,6 @@ package server
 
 import java.text.SimpleDateFormat
 import java.time.LocalDate
-import java.util.{Calendar, Date}
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
@@ -15,11 +14,7 @@ import server.services.GETHandler
 
 object Routes extends Marshaller {
   lazy val dateFormatter = new SimpleDateFormat("dd-MM-yyyy")
-  /*
-=> money-track -remove --d=${date} --n=${name} --c=${category} --a=${amount}
-                        => since the amount is mandatory, it is crucial to know exactly what is to be deleted
-                        => the easiest way to do this is to do a get by a day first and then delete a specific one
-   */
+
   val route: Route =
     path("hello") {
       get {
