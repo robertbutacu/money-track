@@ -9,7 +9,7 @@ data Transaction = Transaction {
 				date   :: String,
 				category :: Maybe String
 
-				}
+				} deriving Show
 
 data Command =  GetAmountForDate String | 
 		GetAmountByInterval String String |
@@ -23,12 +23,33 @@ data Command =  GetAmountForDate String |
 
 find :: [(String, String)] -> (String -> Bool) -> Maybe String
 find [] _= Nothing
-find args f = if (f currArg) then Just currArg
+find args f = if (f currArg) then Just value
 		else find (tail args) f
 		where currArg = fst $ head $ args
+		      value = snd $ head $ args
 
---getTransaction :: [(String, String)] -> Transaction
---getTransaction args = 
+getName :: [(String, String)] -> String
+getName args = case (find args (\x -> x == "--n")) of 
+		Nothing -> ""
+		(Just v) -> v
+
+getAmount :: [(String, String)] -> Double
+getAmount args = case (find args (\x -> x == "--a")) of 
+		Nothing -> 0.0
+		(Just v) -> read v :: Double
+
+getDate :: [(String, String)] -> String
+getDate args = case (find args (\x -> x == "--d")) of 
+		Nothing -> ""
+		(Just v) -> v
+
+getCategory :: [(String, String)] -> Maybe String
+getCategory args = find args (\x -> x == "--c")
+
+
+getTransaction :: [(String, String)] -> Transaction
+getTransaction args = 
+	Transaction (getName args) (getAmount args) (getDate args) (getCategory args)
 
 
 splitAtFirst :: Char -> String -> (String, String)
@@ -48,5 +69,4 @@ parse input = map (\x -> splitAtFirst '=' x) input
 
 main = do
 	args <- getArgs
-	print (parse args)
-	print (find (parse args) (\s -> (length s) > 5))
+	print (getTransaction (parse args))
