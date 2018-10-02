@@ -1,3 +1,5 @@
-object Main extends App {
+import cli.Parser
 
+object Main extends App {
+  Parser.parse(args.toList)
 }

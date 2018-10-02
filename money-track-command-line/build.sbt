@@ -10,7 +10,6 @@ libraryDependencies ++= {
     "org.scalatest" %% "scalatest" % "3.0.4" % "test",
     "org.scalamock" %% "scalamock" % "4.0.0" % Test,
     "com.typesafe" % "config" % "1.3.2",
-    "org.rogach" %% "scallop" % "3.1.3",
     "org.scalaj" %% "scalaj-http" % "2.4.1"
   )
 }
