@@ -43,6 +43,12 @@ getDate args = case (find args (\x -> x == "--d")) of
 		Nothing -> ""
 		(Just v) -> v
 
+getStartDate :: [(String, String)] -> String
+getStartDate args = find args (\x -> x == "--s")
+
+getEndDate :: [(String, String)] -> String
+getEndDate args = find args (\x -> x == "--e")
+
 getCategory :: [(String, String)] -> Maybe String
 getCategory args = find args (\x -> x == "--c")
 
