@@ -21,6 +21,15 @@ data Command =  GetAmountForDate String |
 		Remove Transaction
 
 
+find :: [(String, String)] -> (String -> Bool) -> Maybe String
+find [] _= Nothing
+find args f = if (f currArg) then Just currArg
+		else find (tail args) f
+		where currArg = fst $ head $ args
+
+--getTransaction :: [(String, String)] -> Transaction
+--getTransaction args = 
+
 
 splitAtFirst :: Char -> String -> (String, String)
 splitAtFirst _ "" = ("", "")
@@ -40,3 +49,4 @@ parse input = map (\x -> splitAtFirst '=' x) input
 main = do
 	args <- getArgs
 	print (parse args)
+	print (find (parse args) (\s -> (length s) > 5))
