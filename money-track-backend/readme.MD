@@ -4,10 +4,8 @@ It requires a connection to an alive local Mongo database - could be changed in 
 
 The best way to use this is to package the project into a jar.
 For this, run: sbt package .
-This will create the jar in target/scala-2.12/money-track-backend-assembly-0.1.jar
-
-The reason for using sbt package is because the simple sbt package doesn't add the dependencies to the jar,
-rendering it useless.
+This will create the jar in target/scala-2.12/money-track-backend-assembly-0.1.jar, while also including all the
+required dependencies.
 
 With the jar created, it's easy to create an alias to run the jar - making the server available at one command away.
 
