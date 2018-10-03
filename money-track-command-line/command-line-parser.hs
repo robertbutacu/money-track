@@ -18,7 +18,8 @@ data Command =  GetAmountForDate String |
 		GetTransactions Int | 
 		GetAmount Int | 
 		Add Transaction | 
-		Remove Transaction
+		Remove Transaction |
+		ShowCommands
 
 
 find :: [(String, String)] -> (String -> Bool) -> Maybe String
@@ -57,6 +58,40 @@ getTransaction :: [(String, String)] -> Transaction
 getTransaction args = 
 	Transaction (getName args) (getAmount args) (getDate args) (getCategory args)
 
+parseForAddTransaction :: [(String, String)] -> Command
+parseForAddTransaction _ = ShowCommand
+
+parseforGetAmount :: [(String, String)] -> Command
+parseforGetAmount _ = ShowCommand 
+
+
+parseForGetTransactions :: [(String, String)] -> Command
+parseForGetTransactions _ = ShowCommand
+
+parseforTransactionHistory :: [(String, String)] -> Command
+parseforTransactionHistory _ = ShowCommand
+
+parseForAmountHistory :: [(String, String)] -> Command
+parseForAmountHistory _ = ShowCommand
+
+parseForTransactionRemoval :: [(String, String)] -> Command
+parseForTransactionRemoval _ = ShowCommand
+
+classifyFirstArgument :: String -> [(String, String)] -> Command
+classifyFirstArgument "--add"       = parseForAddTransaction
+classifyFirstArgument "--getAmount" = parseforGetAmount
+classifyFirstArgument "--get"       = parseForGetTransactions
+classifyFirstArgument "--l"         = parseforTransactionHistory
+classifyFirstArgument "--la"        = parseForAmountHistory
+classifyFirstArgument "--remove"    = parseForTransactionRemoval
+
+
+classifyToCommand :: [(String, String)] -> Command
+classifyToCommand []   = ShowCommands
+classifyToCommand args = (classifyFirstArgument $ fst $ head args) (tail args)
+
+
+
 
 splitAtFirst :: Char -> String -> (String, String)
 splitAtFirst _ "" = ("", "")
@@ -66,7 +101,6 @@ splitAtFirst c s =
 	where (first, second) = splitAtFirst c (tail s)
 		
 
-
 parse :: [String] -> [(String, String)]
 parse input = map (\x -> splitAtFirst '=' x) input
 
@@ -75,4 +109,4 @@ parse input = map (\x -> splitAtFirst '=' x) input
 
 main = do
 	args <- getArgs
-	print (getTransaction (parse args))
+	print (classifyToCommand args)
