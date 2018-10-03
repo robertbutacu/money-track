@@ -95,13 +95,26 @@ parseForGetAmount args
 
 
 parseForGetTransactions :: [(String, String)] -> Command
-parseForGetTransactions _ = ShowCommands
+parseForGetTransactions args 
+	| isForInterval     = GetTransactionsByInterval (unwrap start) (unwrap end)
+	| isForSpecificDate = GetTransactionsByDate (unwrap date)
+	| otherwise         = UnknownCommand
+	where 
+		start = find args (\x -> x == "--s")
+		end = find args (\x -> x == "--e")
+		date = find args (\x -> x == "--d")
+		isForInterval = (isDefined start) && (isDefined end)
+		isForSpecificDate = isDefined date
 
 parseForTransactionHistory :: [(String, String)] -> Command
-parseForTransactionHistory _ = ShowCommands
+parseForTransactionHistory args = case (find args (\x -> x == "--h")) of 
+				Nothing -> UnknownCommand
+				(Just n) -> GetTransactions (read n::Int)
 
 parseForAmountHistory :: [(String, String)] -> Command
-parseForAmountHistory _ = ShowCommands
+parseForAmountHistory args = case (find args (\x -> x == "--h")) of 
+				Nothing -> UnknownCommand
+				(Just n) -> GetAmount (read n::Int)
 
 parseForTransactionRemoval :: [(String, String)] -> Command
 parseForTransactionRemoval _ = ShowCommands
