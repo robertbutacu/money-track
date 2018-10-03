@@ -58,14 +58,20 @@ getDate args = case (find args (\x -> x == "--d")) of
 		Nothing -> ""
 		(Just v) -> v
 
+
+getCategory :: [(String, String)] -> Maybe String
+getCategory args = find args (\x -> x == "--c")
+
+
+getTransaction :: [(String, String)] -> Transaction
+getTransaction args = Transaction (getName args) (getAmount args) (getDate args) (getCategory args)
+
+
 getStartDate :: [(String, String)] -> Maybe String
 getStartDate args = find args (\x -> x == "--s")
 
 getEndDate :: [(String, String)] -> Maybe String
 getEndDate args = find args (\x -> x == "--e")
-
-getCategory :: [(String, String)] -> Maybe String
-getCategory args = find args (\x -> x == "--c")
 
 isDefined :: Maybe a -> Bool
 isDefined Nothing = False
@@ -74,12 +80,12 @@ isDefined (Just a) = True
 unwrap :: Maybe String -> String
 unwrap (Just s) = s
 
-getTransaction :: [(String, String)] -> Transaction
-getTransaction args = 
-	Transaction (getName args) (getAmount args) (getDate args) (getCategory args)
+extractTransaction :: [(String, String)] -> Transaction
+extractTransaction args = Transaction (getName args) (getAmount args) (getDate args) (getCategory args)
+
 
 parseForAddTransaction :: [(String, String)] -> Command
-parseForAddTransaction _ = ShowCommands
+parseForAddTransaction args = Add $ extractTransaction args
 
 parseForGetAmount :: [(String, String)] -> Command
 parseForGetAmount args 
@@ -117,7 +123,7 @@ parseForAmountHistory args = case (find args (\x -> x == "--h")) of
 				(Just n) -> GetAmount (read n::Int)
 
 parseForTransactionRemoval :: [(String, String)] -> Command
-parseForTransactionRemoval _ = ShowCommands
+parseForTransactionRemoval args = Remove $ getTransaction args
 
 classifyFirstArgument :: String -> [(String, String)] -> Command
 classifyFirstArgument "--add"       = parseForAddTransaction
