@@ -22,6 +22,19 @@ data Command =  GetAmountForDate String |
 		ShowCommands |
 		UnknownCommand deriving Show
 
+commandUsage = ""
+
+executeCommand :: Command -> String
+executeCommand UnknownCommand = "The command is unknown!"
+executeCommand ShowCommands = commandUsage
+executeCommand (GetAmount days) = "x money"
+executeCommand (Remove (Transaction name amount date category)) = "Transaction removed"
+executeCommand (Add (Transaction name amount date category)) = "Transaction added"
+executeCommand (GetTransactions days) = "X Transactions per last n days"
+executeCommand (GetTransactionsByInterval start end) = "transactions per interval"
+executeCommand (GetTransactionsByDate date) = "transactions by date"
+executeCommand (GetAmountByInterval start end) = "amount per interval"
+executeCommand (GetAmountForDate date) = "amount per date"
 
 find :: [(String, String)] -> (String -> Bool) -> Maybe String
 find [] _= Nothing
@@ -54,6 +67,12 @@ getEndDate args = find args (\x -> x == "--e")
 getCategory :: [(String, String)] -> Maybe String
 getCategory args = find args (\x -> x == "--c")
 
+isDefined :: Maybe a -> Bool
+isDefined Nothing = False
+isDefined (Just a) = True
+
+unwrap :: Maybe String -> String
+unwrap (Just s) = s
 
 getTransaction :: [(String, String)] -> Transaction
 getTransaction args = 
@@ -63,7 +82,16 @@ parseForAddTransaction :: [(String, String)] -> Command
 parseForAddTransaction _ = ShowCommands
 
 parseForGetAmount :: [(String, String)] -> Command
-parseForGetAmount _ = ShowCommands
+parseForGetAmount args 
+	| isForInterval     = GetAmountByInterval (unwrap start) (unwrap end)
+	| isForSpecificDate = GetAmountForDate (unwrap date)
+	| otherwise         = UnknownCommand
+	where 
+		start = find args (\x -> x == "--s")
+		end = find args (\x -> x == "--e")
+		date = find args (\x -> x == "--d")
+		isForInterval = (isDefined start) && (isDefined end)
+		isForSpecificDate = isDefined date
 
 
 parseForGetTransactions :: [(String, String)] -> Command
