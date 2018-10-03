@@ -19,7 +19,8 @@ data Command =  GetAmountForDate String |
 		GetAmount Int | 
 		Add Transaction | 
 		Remove Transaction |
-		ShowCommands
+		ShowCommands |
+		UnknownCommand deriving Show
 
 
 find :: [(String, String)] -> (String -> Bool) -> Maybe String
@@ -44,10 +45,10 @@ getDate args = case (find args (\x -> x == "--d")) of
 		Nothing -> ""
 		(Just v) -> v
 
-getStartDate :: [(String, String)] -> String
+getStartDate :: [(String, String)] -> Maybe String
 getStartDate args = find args (\x -> x == "--s")
 
-getEndDate :: [(String, String)] -> String
+getEndDate :: [(String, String)] -> Maybe String
 getEndDate args = find args (\x -> x == "--e")
 
 getCategory :: [(String, String)] -> Maybe String
@@ -59,32 +60,32 @@ getTransaction args =
 	Transaction (getName args) (getAmount args) (getDate args) (getCategory args)
 
 parseForAddTransaction :: [(String, String)] -> Command
-parseForAddTransaction _ = ShowCommand
+parseForAddTransaction _ = ShowCommands
 
-parseforGetAmount :: [(String, String)] -> Command
-parseforGetAmount _ = ShowCommand 
+parseForGetAmount :: [(String, String)] -> Command
+parseForGetAmount _ = ShowCommands
 
 
 parseForGetTransactions :: [(String, String)] -> Command
-parseForGetTransactions _ = ShowCommand
+parseForGetTransactions _ = ShowCommands
 
-parseforTransactionHistory :: [(String, String)] -> Command
-parseforTransactionHistory _ = ShowCommand
+parseForTransactionHistory :: [(String, String)] -> Command
+parseForTransactionHistory _ = ShowCommands
 
 parseForAmountHistory :: [(String, String)] -> Command
-parseForAmountHistory _ = ShowCommand
+parseForAmountHistory _ = ShowCommands
 
 parseForTransactionRemoval :: [(String, String)] -> Command
-parseForTransactionRemoval _ = ShowCommand
+parseForTransactionRemoval _ = ShowCommands
 
 classifyFirstArgument :: String -> [(String, String)] -> Command
 classifyFirstArgument "--add"       = parseForAddTransaction
-classifyFirstArgument "--getAmount" = parseforGetAmount
+classifyFirstArgument "--getAmount" = parseForGetAmount
 classifyFirstArgument "--get"       = parseForGetTransactions
-classifyFirstArgument "--l"         = parseforTransactionHistory
+classifyFirstArgument "--l"         = parseForTransactionHistory
 classifyFirstArgument "--la"        = parseForAmountHistory
 classifyFirstArgument "--remove"    = parseForTransactionRemoval
-
+classifyFirstArgument _             = (\x -> UnknownCommand)
 
 classifyToCommand :: [(String, String)] -> Command
 classifyToCommand []   = ShowCommands
@@ -109,4 +110,4 @@ parse input = map (\x -> splitAtFirst '=' x) input
 
 main = do
 	args <- getArgs
-	print (classifyToCommand args)
+	print (classifyToCommand (parse args))
