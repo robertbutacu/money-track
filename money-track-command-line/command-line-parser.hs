@@ -24,17 +24,18 @@ data Command =  GetAmountForDate String |
 
 commandUsage = ""
 
-executeCommand :: Command -> String
-executeCommand UnknownCommand = "The command is unknown!"
-executeCommand ShowCommands = commandUsage
-executeCommand (GetAmount days) = "x money"
-executeCommand (Remove (Transaction name amount date category)) = "Transaction removed"
-executeCommand (Add (Transaction name amount date category)) = "Transaction added"
-executeCommand (GetTransactions days) = "X Transactions per last n days"
-executeCommand (GetTransactionsByInterval start end) = "transactions per interval"
-executeCommand (GetTransactionsByDate date) = "transactions by date"
-executeCommand (GetAmountByInterval start end) = "amount per interval"
-executeCommand (GetAmountForDate date) = "amount per date"
+
+splitAtFirst :: Char -> String -> (String, String)
+splitAtFirst _ "" = ("", "")
+splitAtFirst c s = 
+	if ((head s) == c ) then ("", tail s)
+	else ((head s) : first, second)
+	where (first, second) = splitAtFirst c (tail s)
+		
+
+parse :: [String] -> [(String, String)]
+parse input = map (\x -> splitAtFirst '=' x) input
+
 
 find :: [(String, String)] -> (String -> Bool) -> Maybe String
 find [] _= Nothing
@@ -102,19 +103,25 @@ classifyToCommand :: [(String, String)] -> Maybe Command
 classifyToCommand []   = Just ShowCommands
 classifyToCommand args = (classifyFirstArgument $ fst $ head args) (tail args)
 
+executeCommand :: Maybe Command -> String
+executeCommand command = case command of
+				Just c -> go c
+				Nothing -> "The command has an invalid format!"
 
-splitAtFirst :: Char -> String -> (String, String)
-splitAtFirst _ "" = ("", "")
-splitAtFirst c s = 
-	if ((head s) == c ) then ("", tail s)
-	else ((head s) : first, second)
-	where (first, second) = splitAtFirst c (tail s)
-		
-
-parse :: [String] -> [(String, String)]
-parse input = map (\x -> splitAtFirst '=' x) input
+go :: Command -> String
+go UnknownCommand = "The command is unknown!"
+go ShowCommands = commandUsage
+go (GetAmount days) = "x money"
+go (Remove (Transaction name amount date category)) = "Transaction removed"
+go (Add (Transaction name amount date category)) = "Transaction added"
+go (GetTransactions days) = "X Transactions per last n days"
+go (GetTransactionsByInterval start end) = "transactions per interval"
+go (GetTransactionsByDate date) = "transactions by date"
+go (GetAmountByInterval start end) = "amount per interval"
+go (GetAmountForDate date) = "amount per date"
 
 
 main = do
 	args <- getArgs
-	print (classifyToCommand (parse args))
+	let result = executeCommand (classifyToCommand (parse args))
+	print result
