@@ -7,7 +7,7 @@ data Transaction = Transaction {
 				name   :: String,
 				amount :: Double,
 				date   :: String,
-				category :: Maybe String
+				category :: String
 
 				} deriving Show
 
@@ -43,28 +43,16 @@ find args f = if (f currArg) then Just value
 		where currArg = fst $ head $ args
 		      value = snd $ head $ args
 
-getName :: [(String, String)] -> String
-getName args = case (find args (\x -> x == "--n")) of 
-		Nothing -> ""
-		(Just v) -> v
+getArgument :: String -> [(String, String)] -> Maybe String
+getArgument arg args = find args (\x -> x == arg)
 
-getAmount :: [(String, String)] -> Double
-getAmount args = case (find args (\x -> x == "--a")) of 
-		Nothing -> 0.0
-		(Just v) -> read v :: Double
-
-getDate :: [(String, String)] -> String
-getDate args = case (find args (\x -> x == "--d")) of 
-		Nothing -> ""
-		(Just v) -> v
-
-
-getCategory :: [(String, String)] -> Maybe String
-getCategory args = find args (\x -> x == "--c")
-
-
-getTransaction :: [(String, String)] -> Transaction
-getTransaction args = Transaction (getName args) (getAmount args) (getDate args) (getCategory args)
+getTransaction :: [(String, String)] -> Maybe Transaction
+getTransaction args = do
+			name     <- getArgument "--n" args
+			amount   <- getArgument "--a" args
+			date     <- getArgument "--d" args
+			category <- getArgument "--c" args
+			Just (Transaction name (read amount::Double) date category)
 
 
 getStartDate :: [(String, String)] -> Maybe String
@@ -80,12 +68,11 @@ isDefined (Just a) = True
 unwrap :: Maybe String -> String
 unwrap (Just s) = s
 
-extractTransaction :: [(String, String)] -> Transaction
-extractTransaction args = Transaction (getName args) (getAmount args) (getDate args) (getCategory args)
 
-
-parseForAddTransaction :: [(String, String)] -> Command
-parseForAddTransaction args = Add $ extractTransaction args
+parseForTransaction :: (Transaction -> Command) -> [(String, String)] -> Command
+parseForTransaction command args = case getTransaction args of 
+				(Just t) -> command t
+				Nothing  -> UnknownCommand
 
 parseForGetAmount :: [(String, String)] -> Command
 parseForGetAmount args 
@@ -93,9 +80,9 @@ parseForGetAmount args
 	| isForSpecificDate = GetAmountForDate (unwrap date)
 	| otherwise         = UnknownCommand
 	where 
-		start = find args (\x -> x == "--s")
-		end = find args (\x -> x == "--e")
-		date = find args (\x -> x == "--d")
+		start = getArgument "--s" args
+		end = getArgument "--e" args
+		date = getArgument "--d" args
 		isForInterval = (isDefined start) && (isDefined end)
 		isForSpecificDate = isDefined date
 
@@ -106,32 +93,25 @@ parseForGetTransactions args
 	| isForSpecificDate = GetTransactionsByDate (unwrap date)
 	| otherwise         = UnknownCommand
 	where 
-		start = find args (\x -> x == "--s")
-		end = find args (\x -> x == "--e")
-		date = find args (\x -> x == "--d")
+		start = getArgument "--s" args
+		end = getArgument "--e" args
+		date = getArgument "--d" args
 		isForInterval = (isDefined start) && (isDefined end)
 		isForSpecificDate = isDefined date
 
-parseForTransactionHistory :: [(String, String)] -> Command
-parseForTransactionHistory args = case (find args (\x -> x == "--h")) of 
+parseForHistory :: (Int -> Command) -> [(String, String)] -> Command
+parseForHistory command args = case (getArgument "--h" args) of
 				Nothing -> UnknownCommand
-				(Just n) -> GetTransactions (read n::Int)
+				Just n  -> command (read n::Int)
 
-parseForAmountHistory :: [(String, String)] -> Command
-parseForAmountHistory args = case (find args (\x -> x == "--h")) of 
-				Nothing -> UnknownCommand
-				(Just n) -> GetAmount (read n::Int)
-
-parseForTransactionRemoval :: [(String, String)] -> Command
-parseForTransactionRemoval args = Remove $ getTransaction args
 
 classifyFirstArgument :: String -> [(String, String)] -> Command
-classifyFirstArgument "--add"       = parseForAddTransaction
+classifyFirstArgument "--add"       = parseForTransaction Add
 classifyFirstArgument "--getAmount" = parseForGetAmount
 classifyFirstArgument "--get"       = parseForGetTransactions
-classifyFirstArgument "--l"         = parseForTransactionHistory
-classifyFirstArgument "--la"        = parseForAmountHistory
-classifyFirstArgument "--remove"    = parseForTransactionRemoval
+classifyFirstArgument "--l"         = parseForHistory GetTransactions
+classifyFirstArgument "--la"        = parseForHistory GetAmount
+classifyFirstArgument "--remove"    = parseForTransaction Remove
 classifyFirstArgument _             = (\x -> UnknownCommand)
 
 classifyToCommand :: [(String, String)] -> Command
@@ -151,8 +131,6 @@ splitAtFirst c s =
 
 parse :: [String] -> [(String, String)]
 parse input = map (\x -> splitAtFirst '=' x) input
-
-
 
 
 main = do
