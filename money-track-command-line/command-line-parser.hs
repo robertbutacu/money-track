@@ -55,13 +55,6 @@ getTransaction args = do
 			category <- getArgument "--c" args
 			Just (Transaction name (read amount::Double) date category)
 
-
-getStartDate :: [(String, String)] -> Maybe String
-getStartDate args = find args (\x -> x == "--s")
-
-getEndDate :: [(String, String)] -> Maybe String
-getEndDate args = find args (\x -> x == "--e")
-
 isDefined :: Maybe a -> Bool
 isDefined Nothing = False
 isDefined (Just a) = True
