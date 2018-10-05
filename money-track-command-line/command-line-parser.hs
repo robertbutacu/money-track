@@ -69,16 +69,14 @@ unwrap :: Maybe String -> String
 unwrap (Just s) = s
 
 
-parseForTransaction :: (Transaction -> Command) -> [(String, String)] -> Command
-parseForTransaction command args = case getTransaction args of 
-				(Just t) -> command t
-				Nothing  -> UnknownCommand
+parseForTransaction :: (Transaction -> Command) -> [(String, String)] -> Maybe Command
+parseForTransaction command args = fmap (\x -> command x) (getTransaction args)
 
-parseForGetAmount :: [(String, String)] -> Command
-parseForGetAmount args 
-	| isForInterval     = GetAmountByInterval (unwrap start) (unwrap end)
-	| isForSpecificDate = GetAmountForDate (unwrap date)
-	| otherwise         = UnknownCommand
+parseForDates :: (String -> String -> Command) -> (String -> Command) -> [(String, String)] -> Maybe Command
+parseForDates byInterval byDate args 
+	| isForInterval     = Just (byInterval (unwrap start) (unwrap end))
+	| isForSpecificDate = Just (byDate (unwrap date))
+	| otherwise         = Nothing
 	where 
 		start = getArgument "--s" args
 		end = getArgument "--e" args
@@ -87,38 +85,22 @@ parseForGetAmount args
 		isForSpecificDate = isDefined date
 
 
-parseForGetTransactions :: [(String, String)] -> Command
-parseForGetTransactions args 
-	| isForInterval     = GetTransactionsByInterval (unwrap start) (unwrap end)
-	| isForSpecificDate = GetTransactionsByDate (unwrap date)
-	| otherwise         = UnknownCommand
-	where 
-		start = getArgument "--s" args
-		end = getArgument "--e" args
-		date = getArgument "--d" args
-		isForInterval = (isDefined start) && (isDefined end)
-		isForSpecificDate = isDefined date
-
-parseForHistory :: (Int -> Command) -> [(String, String)] -> Command
-parseForHistory command args = case (getArgument "--h" args) of
-				Nothing -> UnknownCommand
-				Just n  -> command (read n::Int)
+parseForHistory :: (Int -> Command) -> [(String, String)] -> Maybe Command
+parseForHistory command args = fmap (\x -> command (read x::Int)) (getArgument "--h" args)
 
 
-classifyFirstArgument :: String -> [(String, String)] -> Command
+classifyFirstArgument :: String -> [(String, String)] -> Maybe Command
 classifyFirstArgument "--add"       = parseForTransaction Add
-classifyFirstArgument "--getAmount" = parseForGetAmount
-classifyFirstArgument "--get"       = parseForGetTransactions
+classifyFirstArgument "--getAmount" = parseForDates GetAmountByInterval GetAmountForDate
+classifyFirstArgument "--get"       = parseForDates GetTransactionsByInterval GetTransactionsByDate
 classifyFirstArgument "--l"         = parseForHistory GetTransactions
 classifyFirstArgument "--la"        = parseForHistory GetAmount
 classifyFirstArgument "--remove"    = parseForTransaction Remove
-classifyFirstArgument _             = (\x -> UnknownCommand)
+classifyFirstArgument _             = (\x -> Just(UnknownCommand))
 
-classifyToCommand :: [(String, String)] -> Command
-classifyToCommand []   = ShowCommands
+classifyToCommand :: [(String, String)] -> Maybe Command
+classifyToCommand []   = Just ShowCommands
 classifyToCommand args = (classifyFirstArgument $ fst $ head args) (tail args)
-
-
 
 
 splitAtFirst :: Char -> String -> (String, String)
