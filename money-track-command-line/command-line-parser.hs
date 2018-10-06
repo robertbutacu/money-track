@@ -132,6 +132,17 @@ data Request = GetAmountRequest {
 		transaction :: Transaction 
 		} deriving Show
 
+toString :: Int -> Transaction -> String
+toString index (Transaction n a d c) = (show index) ++ ".   Name: " ++ n ++ "   Amount: " ++ (show a) ++ "  Date:  " ++ d ++ "   Category: " ++ c ++ "\n"
+
+zipWithIndex :: [a] -> [(Int, a)]
+zipWithIndex l = zip [0..] l
+
+prettyPrinter :: [Transaction] -> String
+prettyPrinter t = foldl (\x y -> x ++ (toString (fst y) (snd y))) "" (zipWithIndex t)
+
+--processRequest :: Request -> String
+
 --processRequestForHistory :: String -> IO [Transaction]
 
 --processRequestForAmount :: String -> IO Double
