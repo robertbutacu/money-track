@@ -103,8 +103,8 @@ flatten input = case input of
 				Nothing     -> Nothing
 		Nothing -> Nothing
 
-executeCommand :: Maybe Command -> Maybe Request
-executeCommand command = flatten (fmap go command)
+extractRequest :: Maybe Command -> Maybe Request
+extractRequest command = flatten (fmap go command)
 
 go :: Command -> Maybe Request
 go UnknownCommand = Nothing
@@ -141,7 +141,10 @@ zipWithIndex l = zip [0..] l
 prettyPrinter :: [Transaction] -> String
 prettyPrinter t = foldl (\x y -> x ++ (toString (fst y) (snd y))) "" (zipWithIndex t)
 
---processRequest :: Request -> String
+executeRequest :: Request -> String
+executeRequest (GetAmountRequest method url) = ""
+executeRequest (GetTransactionsRequest method url) = ""
+executeRequest (PerformOperationRequest method url transaction) = ""
 
 --processRequestForHistory :: String -> IO [Transaction]
 
@@ -149,8 +152,11 @@ prettyPrinter t = foldl (\x y -> x ++ (toString (fst y) (snd y))) "" (zipWithInd
 
 --processRequestForOperation :: String -> IO ()
 
+buildT :: Int -> Transaction
+buildT _ = (Transaction "abasdf" 23.0 "asdfadsf" "asdfasdf")
+
 main = do
 	args <- getArgs
-	let request = executeCommand (classifyToCommand (parse args))
-	--let result = fmap 
+	let request = extractRequest (classifyToCommand (parse args))
+	let response = fmap executeRequest request
 	print request
