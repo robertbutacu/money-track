@@ -141,10 +141,10 @@ zipWithIndex l = zip [0..] l
 prettyPrinter :: [Transaction] -> String
 prettyPrinter t = foldl (\x y -> x ++ (toString (fst y) (snd y))) "" (zipWithIndex t)
 
-executeRequest :: Request -> String
-executeRequest (GetAmountRequest method url) = ""
-executeRequest (GetTransactionsRequest method url) = ""
-executeRequest (PerformOperationRequest method url transaction) = ""
+executeRequest :: Request -> IO String
+executeRequest (GetAmountRequest method url) = return ""
+executeRequest (GetTransactionsRequest method url) = return ""
+executeRequest (PerformOperationRequest method url transaction) = return ""
 
 --processRequestForHistory :: String -> IO [Transaction]
 
