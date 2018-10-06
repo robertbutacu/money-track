@@ -109,18 +109,27 @@ executeCommand command = flatten (fmap go command)
 go :: Command -> Maybe Request
 go UnknownCommand = Nothing
 go ShowCommands = Nothing
-go (GetAmount days) = Just $ Request "GET" ("http://localhost:8080/amount/last?days=" ++ (show days))
-go (Remove (Transaction name amount date category)) = Just $ Request "GET" "http://localhost"
-go (Add (Transaction name amount date category)) = Just $ Request "GET" "http://localhost"
-go (GetTransactions days) = Just $ Request "GET" "http://localhost"
-go (GetTransactionsByInterval start end) = Just $ Request "GET" "http://localhost"
-go (GetTransactionsByDate date) = Just $ Request "GET" ("http://localhost:8080/amount/last?days=" ++ (show date))
-go (GetAmountByInterval start end) = Nothing--Just $ Request "GET" ("http://localhost:8080/amount/last?days=" ++ (show days))
-go (GetAmountForDate date) = Just $ Request "GET" ("http://localhost:8080/transactions?date=" ++ (show date))
+go (GetAmount days) = Just $ GetAmountRequest "GET" ("http://localhost:8080/amount/last?days=" ++ (show days))
+go (Remove t) = Just $ PerformOperationRequest "GET" "http://localhost" t
+go (Add t) = Just $ PerformOperationRequest "GET" "http://localhost" t
+go (GetTransactions days) = Just $ GetTransactionsRequest "GET" "http://localhost"
+go (GetTransactionsByInterval start end) = Just $ GetTransactionsRequest "GET" "http://localhost"
+go (GetTransactionsByDate date) = Just $ GetTransactionsRequest "GET" ("http://localhost:8080/amount/last?days=" ++ (show date))
+go (GetAmountByInterval start end) = Just $ GetAmountRequest "GET" ("http://localhost:8080/amount/last?days=" ++ (show start))
+go (GetAmountForDate date) = Just $ GetAmountRequest "GET" ("http://localhost:8080/transactions?date=" ++ (show date))
 
-data Request = Request {
+data Request = GetAmountRequest {
 		method :: String,
 		url :: String
+		} |
+		GetTransactionsRequest {
+		method :: String,
+		url :: String
+		} |
+		PerformOperationRequest {
+		method :: String,
+		url :: String,
+		transaction :: Transaction 
 		} deriving Show
 
 --processRequestForHistory :: String -> IO [Transaction]
@@ -131,5 +140,6 @@ data Request = Request {
 
 main = do
 	args <- getArgs
-	let result = executeCommand (classifyToCommand (parse args))
-	print result
+	let request = executeCommand (classifyToCommand (parse args))
+	--let result = fmap 
+	print request
