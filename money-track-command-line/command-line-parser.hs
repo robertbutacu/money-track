@@ -1,7 +1,12 @@
+{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
+
 import System.Environment
 import Data.Time
 import Data.Maybe
-
+import Data.Aeson
+import GHC.Generics
+import Data.Foldable
+import Control.Monad.Fix
 
 data Transaction = Transaction {
 				name   :: String,
@@ -9,7 +14,10 @@ data Transaction = Transaction {
 				date   :: String,
 				category :: String
 
-				} deriving Show
+				} deriving (Show, Generic)
+
+instance FromJSON Transaction
+instance ToJSON Transaction
 
 data Command =  GetAmountForDate String | 
 		GetAmountByInterval String String |
@@ -36,16 +44,8 @@ splitAtFirst c s =
 parse :: [String] -> [(String, String)]
 parse input = map (\x -> splitAtFirst '=' x) input
 
-
-find :: [(String, String)] -> (String -> Bool) -> Maybe String
-find [] _= Nothing
-find args f = if (f currArg) then Just value
-		else find (tail args) f
-		where currArg = fst $ head $ args
-		      value = snd $ head $ args
-
 getArgument :: String -> [(String, String)] -> Maybe String
-getArgument arg args = find args (\x -> x == arg)
+getArgument arg args = fmap snd $ find (\x -> (fst x) == arg) args
 
 getTransaction :: [(String, String)] -> Maybe Transaction
 getTransaction args = do
@@ -96,23 +96,38 @@ classifyToCommand :: [(String, String)] -> Maybe Command
 classifyToCommand []   = Just ShowCommands
 classifyToCommand args = (classifyFirstArgument $ fst $ head args) (tail args)
 
-executeCommand :: Maybe Command -> String
-executeCommand command = case command of
-				Just c -> go c
-				Nothing -> "The command has an invalid format!"
+flatten :: Maybe (Maybe a) -> Maybe a
+flatten input = case input of 
+		Just v  -> case v of
+				Just result -> Just result
+				Nothing     -> Nothing
+		Nothing -> Nothing
 
-go :: Command -> String
-go UnknownCommand = "The command is unknown!"
-go ShowCommands = commandUsage
-go (GetAmount days) = "x money"
-go (Remove (Transaction name amount date category)) = "Transaction removed"
-go (Add (Transaction name amount date category)) = "Transaction added"
-go (GetTransactions days) = "X Transactions per last n days"
-go (GetTransactionsByInterval start end) = "transactions per interval"
-go (GetTransactionsByDate date) = "transactions by date"
-go (GetAmountByInterval start end) = "amount per interval"
-go (GetAmountForDate date) = "amount per date"
+executeCommand :: Maybe Command -> Maybe Request
+executeCommand command = flatten (fmap go command)
 
+go :: Command -> Maybe Request
+go UnknownCommand = Nothing
+go ShowCommands = Nothing
+go (GetAmount days) = Just $ Request "GET" ("http://localhost:8080/amount/last?days=" ++ (show days))
+go (Remove (Transaction name amount date category)) = Just $ Request "GET" "http://localhost"
+go (Add (Transaction name amount date category)) = Just $ Request "GET" "http://localhost"
+go (GetTransactions days) = Just $ Request "GET" "http://localhost"
+go (GetTransactionsByInterval start end) = Just $ Request "GET" "http://localhost"
+go (GetTransactionsByDate date) = Just $ Request "GET" ("http://localhost:8080/amount/last?days=" ++ (show date))
+go (GetAmountByInterval start end) = Nothing--Just $ Request "GET" ("http://localhost:8080/amount/last?days=" ++ (show days))
+go (GetAmountForDate date) = Just $ Request "GET" ("http://localhost:8080/transactions?date=" ++ (show date))
+
+data Request = Request {
+		method :: String,
+		url :: String
+		} deriving Show
+
+--processRequestForHistory :: String -> IO [Transaction]
+
+--processRequestForAmount :: String -> IO Double
+
+--processRequestForOperation :: String -> IO ()
 
 main = do
 	args <- getArgs
