@@ -17,9 +17,11 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-http" % "10.1.5",
     "com.typesafe.akka" %% "akka-stream" % "2.5.12",
     "com.typesafe.akka" %% "akka-http-testkit" % "10.1.5" % Test,
-    "org.slf4j" % "slf4j-simple" % "1.6.4",
     "org.mongodb" %% "casbah" % "3.1.1",
     "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.5",
-     "io.spray" %% "spray-json" % "1.3.3"
+    "io.spray" %% "spray-json" % "1.3.3",
+    "org.slf4j" % "slf4j-api" % "1.7.5",
+    "org.slf4j" % "slf4j-simple" % "1.7.5",
+    "org.clapper" %% "grizzled-slf4j" % "1.3.2"
   )
 }

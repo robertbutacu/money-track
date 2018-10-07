@@ -6,7 +6,11 @@ import Data.Maybe
 import Data.Aeson
 import GHC.Generics
 import Data.Foldable
-import Control.Monad.Fix
+import Control.Monad
+import Network
+import Network.HTTP.Conduit
+import Network.HTTP.Types.Header
+import qualified Data.ByteString.Lazy as B
 
 data Transaction = Transaction {
 				name   :: String,
@@ -103,10 +107,10 @@ flatten input = case input of
 				Nothing     -> Nothing
 		Nothing -> Nothing
 
-extractRequest :: Maybe Command -> Maybe Request
+extractRequest :: Maybe Command -> Maybe RequestD
 extractRequest command = flatten (fmap go command)
 
-go :: Command -> Maybe Request
+go :: Command -> Maybe RequestD
 go UnknownCommand = Nothing
 go ShowCommands = Nothing
 go (GetAmount days) = Just $ GetAmountRequest "GET" ("http://localhost:8080/amount/last?days=" ++ (show days))
@@ -118,16 +122,16 @@ go (GetTransactionsByDate date) = Just $ GetTransactionsRequest "GET" ("http://l
 go (GetAmountByInterval start end) = Just $ GetAmountRequest "GET" ("http://localhost:8080/amount/last?days=" ++ (show start))
 go (GetAmountForDate date) = Just $ GetAmountRequest "GET" ("http://localhost:8080/transactions?date=" ++ (show date))
 
-data Request = GetAmountRequest {
-		method :: String,
+data RequestD = GetAmountRequest {
+		requestMethod :: String,
 		url :: String
 		} |
 		GetTransactionsRequest {
-		method :: String,
+		requestMethod :: String,
 		url :: String
 		} |
 		PerformOperationRequest {
-		method :: String,
+		requestMethod :: String,
 		url :: String,
 		transaction :: Transaction 
 		} deriving Show
@@ -141,10 +145,11 @@ zipWithIndex l = zip [0..] l
 prettyPrinter :: [Transaction] -> String
 prettyPrinter t = foldl (\x y -> x ++ (toString (fst y) (snd y))) "" (zipWithIndex t)
 
-executeRequest :: Request -> IO String
-executeRequest (GetAmountRequest method url) = return ""
-executeRequest (GetTransactionsRequest method url) = return ""
-executeRequest (PerformOperationRequest method url transaction) = return ""
+--executeRequest :: RequestD -> B.ByteString
+--executeRequest (GetAmountRequest method url) = rspBody $ simpleHttp method url
+
+--executeRequest (GetTransactionsRequest method url) = return ""
+--executeRequest (PerformOperationRequest method url transaction) = return ""
 
 --processRequestForHistory :: String -> IO [Transaction]
 
@@ -152,11 +157,18 @@ executeRequest (PerformOperationRequest method url transaction) = return ""
 
 --processRequestForOperation :: String -> IO ()
 
-buildT :: Int -> Transaction
-buildT _ = (Transaction "abasdf" 23.0 "asdfadsf" "asdfasdf")
+query :: IO String
+query = do
+    initReq <- parseUrl "http://localhost:8080/amount/last"
+    let r = initReq { method = "GET", requestHeaders = []}
+    let request = setQueryString [("days", Just "23000")] r
+    manager <- newManager tlsManagerSettings
+    res <- httpLbs request manager
+    return . show . responseBody $ res
+
 
 main = do
 	args <- getArgs
 	let request = extractRequest (classifyToCommand (parse args))
-	let response = fmap executeRequest request
-	print request
+	--let response = fmap executeRequest request
+	query >>= putStrLn
