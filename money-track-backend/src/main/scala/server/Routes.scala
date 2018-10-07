@@ -13,9 +13,11 @@ import server.marshaller.Marshaller
 import server.services.{GETHandler, POSTHandler}
 import grizzled.slf4j.Logging
 
-object Routes extends Marshaller with Logging{
+object Routes extends Marshaller with Logging {
   lazy val dateFormatter = new SimpleDateFormat("dd-MM-yyyy")
   lazy val loggingDateFormatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss")
+
+  implicit def stringToDateFormatter(date: String) = dateFormatter.parse(date)
 
   def getCurrentDate(): String = loggingDateFormatter.format(new Date())
 
@@ -28,24 +30,14 @@ object Routes extends Marshaller with Logging{
     } ~ path("transaction") {
       post {
         entity(as[Transaction]) { t =>
-          logger.info(s"[ ${getCurrentDate()} ] *** Received transation : $t . It is to be persisted into the database.")
-
           POSTHandler.postTransaction(t)
-
-          logger.info(s"[ ${getCurrentDate()} ] *** Transaction has been persisted.")
           complete(StatusCodes.Created)
         }
       }
     } ~ path("amount") {
       get {
         parameter("date".as[String]) { date => {
-          val formattedDate = dateFormatter.parse(date)
-
-          logger.info(s"[ ${getCurrentDate()} ] *** Formatted date: $formattedDate for initial input $date")
-
-          val amount = GETHandler.getAmountSpentByDate(formattedDate)
-
-          logger.info(s"[ ${getCurrentDate()} ] *** Found amount: $amount")
+          val amount = GETHandler.getAmountSpentByDate(date)
 
           complete(StatusCodes.OK, List(amount))
         }
@@ -54,14 +46,7 @@ object Routes extends Marshaller with Logging{
     } ~ path("amount" / "interval") {
       get {
         parameter("start".as[String], "end".as[String]) { case (start, end) =>
-          val startDate = dateFormatter.parse(start)
-          val endDate = dateFormatter.parse(end)
-
-          logger.info(s"[ ${getCurrentDate()} ] *** Getting amount for the interval: $startDate -> $endDate")
-
-          val amount = GETHandler.getAmountSpentByPeriod(startDate, endDate)
-
-          logger.info(s"[ ${getCurrentDate()} ] *** Extract amount from the database $amount")
+          val amount = GETHandler.getAmountSpentByPeriod(start, end)
 
           complete(StatusCodes.OK, List(amount))
         }
@@ -69,15 +54,7 @@ object Routes extends Marshaller with Logging{
     } ~ path("amount" / "last") {
       get {
         parameter("days".as[Int]) { n =>
-
-          logger.info(s"[ ${getCurrentDate()} ] *** Getting amount for the last $n days")
-
-          val endDate = java.sql.Date.valueOf(LocalDate.now)
-          val startDate = java.sql.Date.valueOf(LocalDate.now.minusDays(n))
-
-          val amount = GETHandler.getAmountSpentByPeriod(startDate, endDate)
-
-          logger.info(s"[ ${getCurrentDate()} ] *** Extracted amount from the database: $amount")
+          val amount = GETHandler.getAmountForLastNDays(n)
 
           complete(StatusCodes.OK, List(amount))
         }
@@ -85,13 +62,7 @@ object Routes extends Marshaller with Logging{
     } ~ path("transactions") {
       get {
         parameter("date".as[String]) { date =>
-          val formattedDate = dateFormatter.parse(date)
-
-          logger.info(s"[ ${getCurrentDate()} ] *** Formatted date: $formattedDate for initial input $date")
-
-          val transactions = GETHandler.getByDay(formattedDate)
-
-          logger.info(s"[ ${getCurrentDate()} ] *** Found transactions: $transactions")
+          val transactions = GETHandler.getByDay(date)
 
           complete(StatusCodes.OK, List(transactions))
         }
@@ -99,27 +70,15 @@ object Routes extends Marshaller with Logging{
     } ~ path("transactions" / "interval") {
       get {
         parameter("start".as[String], "end".as[String]) { case (start, end) =>
-          val startDate = dateFormatter.parse(start)
-          val endDate = dateFormatter.parse(end)
+          val transactions = GETHandler.getByPeriod(start, end)
 
-          logger.info(s"[ ${getCurrentDate()} ] *** Trying to find transactions by interval: $startDate -> $endDate")
-
-          val transactions = GETHandler.getByPeriod(startDate, endDate)
-
-          logger.info(s"[ ${getCurrentDate()} ] *** Found transactions: $transactions")
           complete(StatusCodes.OK, List(transactions))
         }
       }
     } ~ path("transactions" / "last") {
       get {
         parameter("days".as[Int]) { n =>
-          val endDate = java.sql.Date.valueOf(LocalDate.now)
-          val startDate = java.sql.Date.valueOf(LocalDate.now.minusDays(n))
-
-          logger.info(s"[ ${getCurrentDate()} ] *** Extracting transactions for the last $n days.")
-          val transactions = GETHandler.getByPeriod(startDate, endDate)
-
-          logger.info(s"[ ${getCurrentDate()} ] *** Found transactions: $transactions")
+          val transactions = GETHandler.getForLastNDays(n)
 
           complete(StatusCodes.OK, List(transactions))
         }
