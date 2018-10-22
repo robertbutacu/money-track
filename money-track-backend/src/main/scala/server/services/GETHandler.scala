@@ -7,7 +7,7 @@ import java.util.Date
 import com.mongodb.casbah.Imports._
 import data.{Common, Transaction}
 import grizzled.slf4j.Logging
-import server.Routes.{getCurrentDate, logger}
+import server.Routes.getCurrentDate
 
 object GETHandler extends Logging {
   def getByDay(day: Date): List[Transaction] = {
@@ -28,7 +28,7 @@ object GETHandler extends Logging {
     val transactions = getByPeriod(start, end).filterNot(_.isBill)
     logger.info(s"[${getCurrentDate()} ] *** Found $transactions.")
 
-    val amountSpent = transactions.reduce(_.amount + _.amount)
+    val amountSpent = transactions.foldLeft(0.0)((acc, t) => acc + t.amount)
     logger.info(s"[ ${getCurrentDate()} ] *** Amount spent ups to $amountSpent.")
     limit - amountSpent
   }
