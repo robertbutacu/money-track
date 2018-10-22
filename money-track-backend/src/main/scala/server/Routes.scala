@@ -83,6 +83,14 @@ object Routes extends Marshaller with Logging {
           complete(StatusCodes.OK, List(transactions))
         }
       }
+    } ~ path("budget") {
+      get {
+        parameter("start".as[String], "end".as[String], "limit".as[Double]) { case (start, end, limit) =>
+        val remaining = GETHandler.getBudgetRemaining(start, end, limit)
+
+        complete(StatusCodes.OK, List(remaining))
+        }
+      }
     }
 
 

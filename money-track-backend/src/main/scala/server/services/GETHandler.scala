@@ -22,6 +22,17 @@ object GETHandler extends Logging {
     transactions
   }
 
+  def getBudgetRemaining(start: Date, end: Date, limit: Double): Double = {
+    logger.info(s"[${getCurrentDate()} *** Trying to get remaining budget")
+
+    val transactions = getByPeriod(start, end).filterNot(_.isBill)
+    logger.info(s"[${getCurrentDate()} ] *** Found $transactions.")
+
+    val amountSpent = transactions.reduce(_.amount + _.amount)
+    logger.info(s"[ ${getCurrentDate()} ] *** Amount spent ups to $amountSpent.")
+    limit - amountSpent
+  }
+
   def getForLastNDays(n: Int): List[Transaction] = {
     val end = java.sql.Date.valueOf(LocalDate.now)
     val start = java.sql.Date.valueOf(LocalDate.now.minusDays(n))

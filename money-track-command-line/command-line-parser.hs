@@ -10,7 +10,8 @@ import Control.Monad
 import Network
 import Network.HTTP.Conduit
 import Network.HTTP.Types.Header
-import qualified Data.ByteString.Lazy as B
+import Network.HTTP.Types.Method
+import Data.ByteString.Internal as B
 
 data Transaction = Transaction {
 				name   :: String,
@@ -113,31 +114,35 @@ extractRequest command = flatten (fmap go command)
 go :: Command -> Maybe RequestD
 go UnknownCommand = Nothing
 go ShowCommands = Nothing
-go (GetAmount days) = Just $ GetAmountRequest "GET" ("http://localhost:8080/amount/last?days=" ++ (show days))
+go (GetAmount days) = Just $ GetAmountRequest "GET" ("http://localhost:8080/amount/last") days
 go (Remove t) = Just $ PerformOperationRequest "GET" "http://localhost" t
 go (Add t) = Just $ PerformOperationRequest "GET" "http://localhost" t
-go (GetTransactions days) = Just $ GetTransactionsRequest "GET" "http://localhost"
-go (GetTransactionsByInterval start end) = Just $ GetTransactionsRequest "GET" "http://localhost"
-go (GetTransactionsByDate date) = Just $ GetTransactionsRequest "GET" ("http://localhost:8080/amount/last?days=" ++ (show date))
-go (GetAmountByInterval start end) = Just $ GetAmountRequest "GET" ("http://localhost:8080/amount/last?days=" ++ (show start))
-go (GetAmountForDate date) = Just $ GetAmountRequest "GET" ("http://localhost:8080/transactions?date=" ++ (show date))
+go (GetTransactions days) = Just $ GetTransactionsRequest "GET" "http://localhost:8080/transactions/last" 5
+go (GetTransactionsByInterval start end) = Just $ GetTransactionsRequest "GET" "http://localhost" 5
+go (GetTransactionsByDate date) = Just $ GetTransactionsRequest "GET" ("http://localhost:8080/amount/last") 5
+go (GetAmountByInterval start end) = Just $ GetAmountRequest "GET" ("http://localhost:8080/amount/last") 5
+go (GetAmountForDate date) = Just $ GetAmountRequest "GET" ("http://localhost:8080/transactions")  5
 
 data RequestD = GetAmountRequest {
-		requestMethod :: String,
-		url :: String
+		requestMethod :: Method,
+		url :: String,
+		days :: Int
 		} |
 		GetTransactionsRequest {
-		requestMethod :: String,
-		url :: String
+		requestMethod :: Method,
+		url :: String,
+		days :: Int
 		} |
 		PerformOperationRequest {
-		requestMethod :: String,
+		requestMethod :: Method,
 		url :: String,
 		transaction :: Transaction 
 		} deriving Show
 
 toString :: Int -> Transaction -> String
 toString index (Transaction n a d c) = (show index) ++ ".   Name: " ++ n ++ "   Amount: " ++ (show a) ++ "  Date:  " ++ d ++ "   Category: " ++ c ++ "\n"
+
+--lazyToStrict = Data.ByteString.concat $ BL.toChunks lazy
 
 zipWithIndex :: [a] -> [(Int, a)]
 zipWithIndex l = zip [0..] l
@@ -157,18 +162,19 @@ prettyPrinter t = foldl (\x y -> x ++ (toString (fst y) (snd y))) "" (zipWithInd
 
 --processRequestForOperation :: String -> IO ()
 
-query :: IO String
-query = do
-    initReq <- parseUrl "http://localhost:8080/amount/last"
-    let r = initReq { method = "GET", requestHeaders = []}
-    let request = setQueryString [("days", Just "23000")] r
+executeRequest :: RequestD -> IO String
+executeRequest (GetAmountRequest rm url days) = do
+    initReq <- parseUrl url
+    let r = initReq { method = rm, requestHeaders = []}
+    let request = setQueryString [("days", Just (encode (days::Int)))] r
     manager <- newManager tlsManagerSettings
     res <- httpLbs request manager
     return . show . responseBody $ res
 
-
 main = do
-	args <- getArgs
-	let request = extractRequest (classifyToCommand (parse args))
-	--let response = fmap executeRequest request
-	query >>= putStrLn
+		putStrLn "Hello world"
+--main = do
+	--args <- getArgs
+	--extractRequest (classifyToCommand (parse args)) >>= putStrLn
+	--response <- fmap executeRequest request 
+	--response >>= putStrLn

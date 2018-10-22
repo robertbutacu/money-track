@@ -5,7 +5,7 @@ import java.util.{Calendar, Date}
 
 import com.mongodb.casbah.Imports._
 
-case class Transaction(name: String, category: Option[String] = None, amount: Double = 0.0, date: Option[Date])
+case class Transaction(name: String, category: Option[String] = None, amount: Double = 0.0, date: Option[Date], isBill: Boolean = false)
 
 object Common {
   val dateFormatter = new SimpleDateFormat("dd-MM-YYYY")
