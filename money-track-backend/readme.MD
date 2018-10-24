@@ -10,7 +10,7 @@ required dependencies.
 With the jar created, it's easy to create an alias to run the jar - making the server available at one command away.
 
 To alias the server start-up:
-    1. Open up terminal
+    \n1. Open up terminal
     2. Go to ~ => cd ~
     3. If it doesn't exist, create .bash_profile .
     4. Open the file with your favourite editor.
