@@ -1,17 +1,16 @@
 package server
 
 import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.util.Date
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import data.Transaction
+import grizzled.slf4j.Logging
 import server.marshaller.Marshaller
 import server.services.{GETHandler, POSTHandler}
-import grizzled.slf4j.Logging
 
 object Routes extends Marshaller with Logging {
   lazy val dateFormatter = new SimpleDateFormat("dd-MM-yyyy")
@@ -39,7 +38,7 @@ object Routes extends Marshaller with Logging {
         parameter("date".as[String]) { date => {
           val amount = GETHandler.getAmountSpentByDate(date)
 
-          complete(StatusCodes.OK, List(amount))
+          complete(amount)
         }
         }
       }
@@ -48,7 +47,7 @@ object Routes extends Marshaller with Logging {
         parameter("start".as[String], "end".as[String]) { case (start, end) =>
           val amount = GETHandler.getAmountSpentByPeriod(start, end)
 
-          complete(StatusCodes.OK, List(amount))
+          complete(amount)
         }
       }
     } ~ path("amount" / "last") {
@@ -56,7 +55,7 @@ object Routes extends Marshaller with Logging {
         parameter("days".as[Int]) { n =>
           val amount = GETHandler.getAmountForLastNDays(n)
 
-          complete(StatusCodes.OK, List(amount))
+          complete(amount)
         }
       }
     } ~ path("transactions") {
@@ -88,7 +87,7 @@ object Routes extends Marshaller with Logging {
         parameter("start".as[String], "end".as[String], "limit".as[Double]) { case (start, end, limit) =>
         val remaining = GETHandler.getBudgetRemaining(start, end, limit)
 
-        complete(StatusCodes.OK, List(remaining))
+          complete(remaining)
         }
       }
     }

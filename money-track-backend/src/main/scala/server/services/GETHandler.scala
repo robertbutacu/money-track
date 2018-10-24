@@ -5,7 +5,7 @@ import java.time.LocalDate
 import java.util.Date
 
 import com.mongodb.casbah.Imports._
-import data.{Common, Transaction}
+import data.{Amount, Common, Transaction}
 import grizzled.slf4j.Logging
 import server.Routes.getCurrentDate
 
@@ -22,7 +22,7 @@ object GETHandler extends Logging {
     transactions
   }
 
-  def getBudgetRemaining(start: Date, end: Date, limit: Double): Double = {
+  def getBudgetRemaining(start: Date, end: Date, limit: Double): Amount = {
     logger.info(s"[${getCurrentDate()} *** Trying to get remaining budget")
 
     val transactions = getByPeriod(start, end).filterNot(_.isBill)
@@ -30,7 +30,8 @@ object GETHandler extends Logging {
 
     val amountSpent = transactions.foldLeft(0.0)((acc, t) => acc + t.amount)
     logger.info(s"[ ${getCurrentDate()} ] *** Amount spent ups to $amountSpent.")
-    limit - amountSpent
+
+    Amount(limit - amountSpent)
   }
 
   def getForLastNDays(n: Int): List[Transaction] = {
@@ -61,7 +62,7 @@ object GETHandler extends Logging {
     convertToList(results)
   }
 
-  def getAmountSpentByDate(day: Date): Double = {
+  def getAmountSpentByDate(day: Date): Amount = {
     logger.info(s"[ ${getCurrentDate()} ] *** Amount by date: $day")
 
     val transactions = getByDay(day)
@@ -73,10 +74,10 @@ object GETHandler extends Logging {
 
     logger.info(s"[ ${getCurrentDate()} ] *** Found amount: $amount")
 
-    amount
+    Amount(amount)
   }
 
-  def getAmountForLastNDays(n: Int): Double = {
+  def getAmountForLastNDays(n: Int): Amount = {
     logger.info(s"[ ${getCurrentDate()} ] *** Getting amount for the last $n days")
 
     val endDate = java.sql.Date.valueOf(LocalDate.now)
@@ -85,7 +86,7 @@ object GETHandler extends Logging {
     getAmountSpentByPeriod(startDate, endDate)
   }
 
-  def getAmountSpentByPeriod(start: Date, end: Date): Double = {
+  def getAmountSpentByPeriod(start: Date, end: Date): Amount = {
     logger.info(s"[ ${getCurrentDate()} ] *** Getting amount for the interval: $start -> $end")
 
     val transactions = getByPeriod(start, end)
@@ -97,7 +98,7 @@ object GETHandler extends Logging {
 
     logger.info(s"[ ${getCurrentDate()} ] *** Extract amount from the database $amount")
 
-    amount
+    Amount(amount)
   }
 
   private def convertToList(l: Iterable[DBObject]): List[Transaction] =
