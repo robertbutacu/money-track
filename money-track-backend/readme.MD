@@ -10,13 +10,13 @@ required dependencies.
 With the jar created, it's easy to create an alias to run the jar - making the server available at one command away.
 
 To alias the server start-up:
-    \n1. Open up terminal
-    2. Go to ~ => cd ~
-    3. If it doesn't exist, create .bash_profile .
-    4. Open the file with your favourite editor.
-    5. Create the alias. For me, that would be:
-    alias money-track-server="scala /Users/robert/own-projects/money-track/money-track-backend/target/scala-2.12/money-track-backend-assembly-0.1.jar"
-    6. Restart the terminal.
+1. Open up terminal
+2. Go to ~ => cd ~
+3. If it doesn't exist, create .bash_profile .
+4. Open the file with your favourite editor.
+5. Create the alias. For me, that would be:
+   => alias money-track-server="scala /Users/robert/own-projects/money-track/money-track-backend/target/scala-2.12/money-track-backend-assembly-0.1.jar"
+6. Restart the terminal.
 
 Now, the server should be up and running every time money-track-server is being called.
 However, this doesn't ensure that the Mongo database is up as well.
