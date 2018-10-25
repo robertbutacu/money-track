@@ -21,7 +21,7 @@ object Common {
     builder += "category" -> transaction.category
     builder += "amount" -> transaction.amount
     builder += "date" -> dateFormatter.format(formattedDate)
-
+    builder += "isBill" -> transaction.isBill
     builder.result
   }
 
@@ -39,7 +39,8 @@ object Common {
       mongoObject.getAs[String]("date") match {
         case Some(date) =>  Some(dateFormatter.parse(date))
         case None => None
-      })
+      },
+      mongoObject.getAsOrElse[Boolean]("isBill", false))
   }
 
 
