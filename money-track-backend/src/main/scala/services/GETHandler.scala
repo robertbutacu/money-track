@@ -37,7 +37,7 @@ object GETHandler extends Logging {
   }
 
   def getForLastNDays(n: Int): Transactions = {
-    val end = java.sql.Date.valueOf(LocalDate.now)
+    val end = java.sql.Date.valueOf(LocalDate.now.plusDays(1))
     val start = java.sql.Date.valueOf(LocalDate.now.minusDays(n))
 
     logger.info(s"[ ${getCurrentDate()} ] *** Extracting transactions for the last $n days.")
@@ -82,7 +82,7 @@ object GETHandler extends Logging {
   def getAmountForLastNDays(n: Int): Amount = {
     logger.info(s"[ ${getCurrentDate()} ] *** Getting amount for the last $n days")
 
-    val endDate = java.sql.Date.valueOf(LocalDate.now)
+    val endDate = java.sql.Date.valueOf(LocalDate.now.plusDays(1))
     val startDate = java.sql.Date.valueOf(LocalDate.now.minusDays(n))
 
     getAmountSpentByPeriod(startDate, endDate)
