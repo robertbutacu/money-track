@@ -30,7 +30,7 @@ object GETHandler extends Logging {
     val transactions = getByPeriod(start, end).filterNot(_.isBill)
     logger.info(s"[${getCurrentDate()} ] *** Found $transactions.")
 
-    val amountSpent = transactions.foldLeft(0.0)((acc, t) => acc + t.amount)
+    val amountSpent = gatherAmount(transactions).amount
     logger.info(s"[ ${getCurrentDate()} ] *** Amount spent ups to $amountSpent.")
 
     Amount(limit - amountSpent)
@@ -69,14 +69,11 @@ object GETHandler extends Logging {
 
     val transactions = getByDay(day)
 
-    val amount = transactions.foldLeft(0.0) {
-      case (acc, curr) =>
-        acc + curr.amount
-    }
+    val amount = gatherAmount(transactions)
 
-    logger.info(s"[ ${getCurrentDate()} ] *** Found amount: $amount")
+    logger.info(s"[ ${getCurrentDate()} ] *** Found amount: ${amount.amount}")
 
-    Amount(amount)
+    amount
   }
 
   def getAmountForLastNDays(n: Int): Amount = {
@@ -88,32 +85,44 @@ object GETHandler extends Logging {
     getAmountSpentByPeriod(startDate, endDate)
   }
 
-  def getByProduct(product: String): Transactions = {
-    logger.info(s"[ ${getCurrentDate()} ] *** Getting transactions for product $product")
+  def getByProduct(product: String): Transactions =
+    getTransactionsByField("name", product)
 
-    val transactions = MongoFactory.collection.filter { record =>
-      val recordProductName = record.getAs[String]("name")
+  def getByCategory(category: String): Transactions =
+    getTransactionsByField("category", category)
 
-      recordProductName.contains(product)
-    }
+  def getAmountByProduct(product: String): Amount =
+    gatherAmount(getByProduct(product))
 
-    convertToList(transactions)
-  }
+  def getAmountByCategory(category: String): Amount =
+    gatherAmount(getByCategory(category))
 
   def getAmountSpentByPeriod(start: Date, end: Date): Amount = {
     logger.info(s"[ ${getCurrentDate()} ] *** Getting amount for the interval: $start -> $end")
 
     val transactions = getByPeriod(start, end)
 
-    val amount = transactions.foldLeft(0.0) {
-      case (acc, curr) =>
-        acc + curr.amount
+    val amount = gatherAmount(transactions)
+
+    logger.info(s"[ ${getCurrentDate()} ] *** Extract amount from the database ${amount.amount}")
+
+    amount
+  }
+
+  private def getTransactionsByField(field: String, value: String): Transactions = {
+    logger.info(s"[ ${getCurrentDate()} ] *** Getting transactions by field: $field")
+
+    val transactions = MongoFactory.collection.filter { record =>
+      val recordProductName = record.getAs[String](field)
+
+      recordProductName.contains(value)
     }
 
-    logger.info(s"[ ${getCurrentDate()} ] *** Extract amount from the database $amount")
-
-    Amount(amount)
+    convertToList(transactions)
   }
+
+  private def gatherAmount(transactions: Transactions): Amount =
+    Amount(transactions.foldLeft(0.0)((acc, curr) => acc + curr.amount))
 
   private def convertToList(l: Iterable[DBObject]): Transactions =
     l.toList.map(Common.fromMongoDbObject)
