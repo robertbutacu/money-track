@@ -99,7 +99,29 @@ object Routes extends Marshaller with Logging {
 
         }
       }
+    } ~ path("transactions") {
+      get{
+        parameter("category".as[String]) { category =>
+          val transactions = GETHandler.getByCategory(category)
+
+          complete(StatusCodes.OK, transactions)
+        }
+      }
+    } ~ path("amount") {
+      get {
+        parameter("product".as[String]) { product =>
+          val amount = GETHandler.getAmountByProduct(product)
+
+          complete(amount)
+        }
+      }
+    } ~ path("amount") {
+      get {
+        parameter("category".as[String]) { category =>
+          val amount = GETHandler.getAmountByCategory(category)
+
+          complete(amount)
+        }
+      }
     }
-
-
 }
