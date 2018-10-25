@@ -1,4 +1,4 @@
-package server.marshaller
+package marshaller
 
 import java.text.SimpleDateFormat
 import java.util.Date

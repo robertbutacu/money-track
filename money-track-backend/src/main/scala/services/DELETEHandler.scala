@@ -1,8 +1,8 @@
-package server.services
+package services
 
 import akka.http.scaladsl.model.{HttpResponse, StatusCode}
 import com.mongodb.casbah.Imports._
-import data.{Common, Transaction}
+import models.{Common, Transaction}
 
 object DELETEHandler {
   def deleteTransaction(transaction: Transaction): HttpResponse = {

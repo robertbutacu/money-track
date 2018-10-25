@@ -1,8 +1,8 @@
-package server.marshaller
+package marshaller
 
-import data.{Amount, Transaction}
+import models.{Amount, Transaction}
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
-import server.marshaller.DateMarshalling._
+import DateMarshalling._
 
 trait Marshaller extends DefaultJsonProtocol {
   implicit val transactionJson: RootJsonFormat[Transaction] = jsonFormat5(Transaction.apply)

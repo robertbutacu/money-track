@@ -1,3 +1,3 @@
-package data
+package models
 
 case class Amount(amount: Double)

@@ -7,10 +7,10 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import data.Transaction
+import models.Transaction
 import grizzled.slf4j.Logging
-import server.marshaller.Marshaller
-import server.services.{GETHandler, POSTHandler}
+import marshaller.Marshaller
+import services.{GETHandler, POSTHandler}
 
 object Routes extends Marshaller with Logging {
   lazy val dateFormatter = new SimpleDateFormat("dd-MM-yyyy")

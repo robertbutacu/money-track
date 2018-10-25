@@ -1,11 +1,11 @@
-package server.services
+package services
 
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.Date
 
 import com.mongodb.casbah.Imports._
-import data.{Amount, Common, Transaction}
+import models.{Amount, Common, Transaction}
 import grizzled.slf4j.Logging
 import server.Routes.getCurrentDate
 
@@ -94,7 +94,7 @@ object GETHandler extends Logging {
     val transactions = MongoFactory.collection.filter { record =>
       val recordProductName = record.getAs[String]("name")
 
-      recordProductName.exists(_ == product)
+      recordProductName.contains(product)
     }
 
     convertToList(transactions)

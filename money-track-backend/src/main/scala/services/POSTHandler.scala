@@ -1,8 +1,8 @@
-package server.services
+package services
 
 import com.mongodb.WriteResult
 import com.mongodb.casbah.Imports._
-import data.{Common, Transaction}
+import models.{Common, Transaction}
 import grizzled.slf4j.Logging
 import server.Routes.{getCurrentDate, logger}
 

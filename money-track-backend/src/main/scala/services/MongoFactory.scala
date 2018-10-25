@@ -1,4 +1,4 @@
-package server.services
+package services
 
 import com.mongodb.casbah.MongoConnection
 
