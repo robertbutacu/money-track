@@ -10,7 +10,9 @@ import grizzled.slf4j.Logging
 import server.Routes.getCurrentDate
 
 object GETHandler extends Logging {
-  def getByDay(day: Date): List[Transaction] = {
+  type Transactions = List[Transaction]
+
+  def getByDay(day: Date): Transactions = {
     val toFindRecord = new SimpleDateFormat("dd-MM-yyyy").format(day)
     logger.info(s"[ ${getCurrentDate()} ] *** Finding transactions by date: $toFindRecord")
 
@@ -34,7 +36,7 @@ object GETHandler extends Logging {
     Amount(limit - amountSpent)
   }
 
-  def getForLastNDays(n: Int): List[Transaction] = {
+  def getForLastNDays(n: Int): Transactions = {
     val end = java.sql.Date.valueOf(LocalDate.now)
     val start = java.sql.Date.valueOf(LocalDate.now.minusDays(n))
 
@@ -43,14 +45,14 @@ object GETHandler extends Logging {
     getByPeriod(start, end)
   }
 
-  def getByPeriod(start: Date, end: Date): List[Transaction] = {
+  def getByPeriod(start: Date, end: Date): Transactions = {
 
     logger.info(s"[ ${getCurrentDate()} ] *** Trying to find transactions by interval: $start -> $end")
 
     val results = MongoFactory.collection.filter { record =>
       val transactionDate = record.getAs[String]("date")
 
-      transactionDate.forall{date =>
+      transactionDate.exists { date =>
         val formattedDate = Common.dateFormatter.parse(date)
         formattedDate.after(start) && formattedDate.before(end)}
     }
@@ -86,6 +88,18 @@ object GETHandler extends Logging {
     getAmountSpentByPeriod(startDate, endDate)
   }
 
+  def getByProduct(product: String): Transactions = {
+    logger.info(s"[ ${getCurrentDate()} ] *** Getting transactions for product $product")
+
+    val transactions = MongoFactory.collection.filter { record =>
+      val recordProductName = record.getAs[String]("name")
+
+      recordProductName.exists(_ == product)
+    }
+
+    convertToList(transactions)
+  }
+
   def getAmountSpentByPeriod(start: Date, end: Date): Amount = {
     logger.info(s"[ ${getCurrentDate()} ] *** Getting amount for the interval: $start -> $end")
 
@@ -101,6 +115,6 @@ object GETHandler extends Logging {
     Amount(amount)
   }
 
-  private def convertToList(l: Iterable[DBObject]): List[Transaction] =
+  private def convertToList(l: Iterable[DBObject]): Transactions =
     l.toList.map(Common.fromMongoDbObject)
 }

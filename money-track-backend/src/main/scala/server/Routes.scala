@@ -63,7 +63,7 @@ object Routes extends Marshaller with Logging {
         parameter("date".as[String]) { date =>
           val transactions = GETHandler.getByDay(date)
 
-          complete(StatusCodes.OK, List(transactions))
+          complete(StatusCodes.OK, transactions)
         }
       }
     } ~ path("transactions" / "interval") {
@@ -71,7 +71,7 @@ object Routes extends Marshaller with Logging {
         parameter("start".as[String], "end".as[String]) { case (start, end) =>
           val transactions = GETHandler.getByPeriod(start, end)
 
-          complete(StatusCodes.OK, List(transactions))
+          complete(StatusCodes.OK, transactions)
         }
       }
     } ~ path("transactions" / "last") {
@@ -79,7 +79,7 @@ object Routes extends Marshaller with Logging {
         parameter("days".as[Int]) { n =>
           val transactions = GETHandler.getForLastNDays(n)
 
-          complete(StatusCodes.OK, List(transactions))
+          complete(StatusCodes.OK, transactions)
         }
       }
     } ~ path("budget") {
@@ -88,6 +88,15 @@ object Routes extends Marshaller with Logging {
         val remaining = GETHandler.getBudgetRemaining(start, end, limit)
 
           complete(remaining)
+        }
+      }
+    } ~ path("transactions") {
+      get {
+        parameter("product".as[String]) { product =>
+          val transactions = GETHandler.getByProduct(product)
+
+          complete(StatusCodes.OK, transactions)
+
         }
       }
     }
