@@ -41,7 +41,7 @@ object TransactionController extends Marshaller {
     } ~ path("transactions" / "interval") {
       get {
         parameter("start".as[String], "end".as[String]) { case (start, end) =>
-          val transactions = GETHandler.getByPeriod(start, end)
+          val transactions = GETHandler.getTransactionsByPeriod(start, end)
 
           complete(StatusCodes.OK, transactions)
         }
@@ -49,7 +49,15 @@ object TransactionController extends Marshaller {
     } ~ path("transactions" /  "last") {
       get {
         parameter("days".as[Int]) { n =>
-          val transactions = GETHandler.getForLastNDays(n)
+          val transactions = GETHandler.getForLastNDaysWithoutBills(n)
+
+          complete(StatusCodes.OK, transactions)
+        }
+      }
+    } ~ path("transactions" /  "last" / "withBills") {
+      get {
+        parameter("days".as[Int]) { n =>
+          val transactions = GETHandler.getTransactionsForLastNDays(n)
 
           complete(StatusCodes.OK, transactions)
         }

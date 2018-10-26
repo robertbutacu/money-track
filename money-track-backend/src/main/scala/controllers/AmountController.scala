@@ -45,10 +45,18 @@ object AmountController extends Marshaller {
           complete(remaining)
         }
       }
-    } ~ path("amount" / "last") {
+    } ~ path("amount" / "last" / "withBills") {
       get {
         parameter("days".as[Int]) { n =>
           val amount = GETHandler.getAmountForLastNDays(n)
+
+          complete(amount)
+        }
+      }
+    } ~ path("amount" / "last") {
+      get {
+        parameter("days".as[Int]) { n =>
+          val amount = GETHandler.getAmountForLastNDaysWithoutBills(n)
 
           complete(amount)
         }

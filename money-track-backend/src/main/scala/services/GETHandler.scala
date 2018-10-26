@@ -10,6 +10,20 @@ import grizzled.slf4j.Logging
 import server.Routes.getCurrentDate
 
 object GETHandler extends Logging {
+  def getForLastNDaysWithoutBills(n: Int): Transactions = {
+    logger.info(s"[ ${getCurrentDate()} ] *** Retrieving transactions without bills for last $n days.")
+
+    getTransactionsForLastNDays(n).filterNot(_.isBill)
+  }
+
+  def getAmountForLastNDaysWithoutBills(n: Int): Amount = {
+    logger.info(s"[ ${getCurrentDate()} ] *** Retrieving amount for transactions excepting bills for last $n days.")
+
+    val transactions = getTransactionsForLastNDays(n)
+
+    gatherAmount(transactions.filterNot(_.isBill))
+  }
+
   type Transactions = List[Transaction]
 
   def getByDay(day: Date): Transactions = {
@@ -27,7 +41,7 @@ object GETHandler extends Logging {
   def getBudgetRemaining(start: Date, end: Date, limit: Double): Amount = {
     logger.info(s"[${getCurrentDate()} *** Trying to get remaining budget")
 
-    val transactions = getByPeriod(start, end).filterNot(_.isBill)
+    val transactions = getTransactionsByPeriod(start, end).filterNot(_.isBill)
     logger.info(s"[${getCurrentDate()} ] *** Found $transactions.")
 
     val amountSpent = gatherAmount(transactions).amount
@@ -36,16 +50,16 @@ object GETHandler extends Logging {
     Amount(limit - amountSpent)
   }
 
-  def getForLastNDays(n: Int): Transactions = {
+  def getTransactionsForLastNDays(n: Int): Transactions = {
     val end = java.sql.Date.valueOf(LocalDate.now.plusDays(1))
     val start = java.sql.Date.valueOf(LocalDate.now.minusDays(n))
 
     logger.info(s"[ ${getCurrentDate()} ] *** Extracting transactions for the last $n days.")
 
-    getByPeriod(start, end)
+    getTransactionsByPeriod(start, end)
   }
 
-  def getByPeriod(start: Date, end: Date): Transactions = {
+  def getTransactionsByPeriod(start: Date, end: Date): Transactions = {
 
     logger.info(s"[ ${getCurrentDate()} ] *** Trying to find transactions by interval: $start -> $end")
 
@@ -100,7 +114,7 @@ object GETHandler extends Logging {
   def getAmountSpentByPeriod(start: Date, end: Date): Amount = {
     logger.info(s"[ ${getCurrentDate()} ] *** Getting amount for the interval: $start -> $end")
 
-    val transactions = getByPeriod(start, end)
+    val transactions = getTransactionsByPeriod(start, end)
 
     val amount = gatherAmount(transactions)
 
