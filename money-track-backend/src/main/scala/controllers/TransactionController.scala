@@ -11,15 +11,14 @@ import services.{GETHandler, POSTHandler}
 
 object TransactionController extends Marshaller {
   val transactionRoutes: Route =
-    path("transactions" /) {
+    path("transactions") {
       get {
         parameter("category".as[String]) { category =>
           val transactions = GETHandler.getByCategory(category)
 
           complete(StatusCodes.OK, transactions)
         }
-      } ~
-        post {
+      } ~ post {
           entity(as[Transaction]) { t =>
             POSTHandler.postTransaction(t)
             complete(StatusCodes.Created)
@@ -31,14 +30,6 @@ object TransactionController extends Marshaller {
 
             complete(StatusCodes.OK, transactions)
           }
-        } ~ pathSuffix("interval") {
-          get {
-            parameter("start".as[String], "end".as[String]) { case (start, end) =>
-              val transactions = GETHandler.getByPeriod(start, end)
-
-              complete(StatusCodes.OK, transactions)
-            }
-          }
         } ~ get {
         parameter("product".as[String]) { product =>
           val transactions = GETHandler.getByProduct(product)
@@ -46,13 +37,21 @@ object TransactionController extends Marshaller {
           complete(StatusCodes.OK, transactions)
 
         }
-      } ~ path("/last") {
-        get {
-          parameter("days".as[Int]) { n =>
-            val transactions = GETHandler.getForLastNDays(n)
+      }
+    } ~ path("transactions" / "interval") {
+      get {
+        parameter("start".as[String], "end".as[String]) { case (start, end) =>
+          val transactions = GETHandler.getByPeriod(start, end)
 
-            complete(StatusCodes.OK, transactions)
-          }
+          complete(StatusCodes.OK, transactions)
+        }
+      }
+    } ~ path("transactions" /  "last") {
+      get {
+        parameter("days".as[Int]) { n =>
+          val transactions = GETHandler.getForLastNDays(n)
+
+          complete(StatusCodes.OK, transactions)
         }
       }
     }

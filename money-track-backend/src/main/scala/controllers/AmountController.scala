@@ -16,22 +16,6 @@ object AmountController extends Marshaller {
 
           complete(amount)
         }
-      } ~ path("interval") {
-        get {
-          parameter("start".as[String], "end".as[String]) { case (start, end) =>
-            val amount = GETHandler.getAmountSpentByPeriod(start, end)
-
-            complete(amount)
-          }
-        }
-      } ~ path("last") {
-        get {
-          parameter("days".as[Int]) { n =>
-            val amount = GETHandler.getAmountForLastNDays(n)
-
-            complete(amount)
-          }
-        }
       } ~ get {
         parameter("product".as[String]) { product =>
           val amount = GETHandler.getAmountByProduct(product)
@@ -45,12 +29,28 @@ object AmountController extends Marshaller {
           complete(amount)
         }
       }
-    } ~ path("budget") {
+    } ~ path("amount" / "interval") {
+      get {
+        parameter("start".as[String], "end".as[String]) { case (start, end) =>
+          val amount = GETHandler.getAmountSpentByPeriod(start, end)
+
+          complete(amount)
+        }
+      }
+    } ~ path("amount" / "budget") {
       get {
         parameter("start".as[String], "end".as[String], "limit".as[Double]) { case (start, end, limit) =>
           val remaining = GETHandler.getBudgetRemaining(start, end, limit)
 
           complete(remaining)
+        }
+      }
+    } ~ path("amount" / "last") {
+      get {
+        parameter("days".as[Int]) { n =>
+          val amount = GETHandler.getAmountForLastNDays(n)
+
+          complete(amount)
         }
       }
     }
