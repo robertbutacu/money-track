@@ -19,11 +19,11 @@ object TransactionController extends Marshaller {
           complete(StatusCodes.OK, transactions)
         }
       } ~ post {
-          entity(as[Transaction]) { t =>
-            POSTHandler.postTransaction(t)
-            complete(StatusCodes.Created)
-          }
-        } ~
+        entity(as[Transaction]) { t =>
+          POSTHandler.postTransaction(t)
+          complete(StatusCodes.Created)
+        }
+      } ~
         get {
           parameter("date".as[String]) { date =>
             val transactions = GETHandler.getByDay(date)
@@ -46,7 +46,7 @@ object TransactionController extends Marshaller {
           complete(StatusCodes.OK, transactions)
         }
       }
-    } ~ path("transactions" /  "last") {
+    } ~ path("transactions" / "last") {
       get {
         parameter("days".as[Int]) { n =>
           val transactions = GETHandler.getForLastNDaysWithoutBills(n)
@@ -54,12 +54,28 @@ object TransactionController extends Marshaller {
           complete(StatusCodes.OK, transactions)
         }
       }
-    } ~ path("transactions" /  "last" / "withBills") {
+    } ~ path("transactions" / "last" / "withBills") {
       get {
         parameter("days".as[Int]) { n =>
           val transactions = GETHandler.getTransactionsForLastNDays(n)
 
           complete(StatusCodes.OK, transactions)
+        }
+      }
+    } ~ path("transactions" / "monthly") {
+      post {
+        entity(as[Unit]) { _ =>
+          POSTHandler.monthlyExpenses()
+
+          complete(StatusCodes.OK)
+        }
+      }
+    } ~ path("transactions" / "weekly") {
+      post {
+        entity(as[Unit]) { _ =>
+          POSTHandler.weeklyExpenses()
+
+          complete(StatusCodes.OK)
         }
       }
     }
