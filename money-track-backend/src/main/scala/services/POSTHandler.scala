@@ -13,12 +13,14 @@ object POSTHandler extends Marshaller with Logging {
   lazy val loggingDateFormatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss")
   def getCurrentDate(): String = loggingDateFormatter.format(new Date())
 
+  def transactionToDBOject(transaction: Transaction): MongoDBObject = Common.buildMongoDbObject(transaction)
+
   def weeklyExpenses(): Unit = {
     logger.info(s"[ ${getCurrentDate()} ] *** Persisting weekly expenses")
 
     val train = Transaction("train", Some("transport"), 40, Some(new Date()), isBill = true)
 
-    MongoFactory.collection.save(train)
+    MongoFactory.collection.save(transactionToDBOject(train))
   }
 
   def monthlyExpenses(): Unit = {
@@ -30,18 +32,17 @@ object POSTHandler extends Marshaller with Logging {
     val netflix = Transaction("netflix", Some("entertainment"), 10, Some(new Date()), isBill = true)
     val rent = Transaction("rent", Some("living"), 660, Some(new Date()), isBill = true)
 
-    MongoFactory.collection.save(gym)
-    MongoFactory.collection.save(swimmingPool)
-    MongoFactory.collection.save(spotify)
-    MongoFactory.collection.save(netflix)
-    MongoFactory.collection.save(rent)
+    MongoFactory.collection.save(transactionToDBOject(gym))
+    MongoFactory.collection.save(transactionToDBOject(swimmingPool))
+    MongoFactory.collection.save(transactionToDBOject(spotify))
+    MongoFactory.collection.save(transactionToDBOject(netflix))
+    MongoFactory.collection.save(transactionToDBOject(rent))
   }
 
   def postTransaction(transaction: Transaction): WriteResult = {
     logger.info(s"[ ${getCurrentDate()} ] *** Received transation : $transaction . It is to be persisted into the database.")
 
-    val transactionRecord = Common.buildMongoDbObject(transaction)
-    val result = MongoFactory.collection.save(transactionRecord)
+    val result = MongoFactory.collection.save(transactionToDBOject(transaction))
 
     logger.info(s"[ ${getCurrentDate()} ] *** Transaction has been persisted.")
 

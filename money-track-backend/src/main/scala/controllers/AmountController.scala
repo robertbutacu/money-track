@@ -6,9 +6,9 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import controllers.AmountController.AmountRoutes
 import marshaller.Marshaller
-import models.Common._
 import services.GETHandler
 import services.amount.AmountRetrievalService
+import models.Common.stringToDateFormatter
 
 import scala.concurrent.ExecutionContext
 
