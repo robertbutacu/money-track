@@ -1,15 +1,23 @@
 package controllers
 
+import akka.actor.{Actor, ActorSystem, Props}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import controllers.TransactionController.TransactionRoutes
 import marshaller.Marshaller
 import models.Common._
 import models.Transaction
+import services.transaction.{TransactionsPersistanceService, TransactionsRetrievalService}
 import services.{GETHandler, POSTHandler}
 
-object TransactionController extends Marshaller {
+import scala.concurrent.ExecutionContext
+
+class TransactionController(actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) extends Marshaller with Actor {
+  val transactionsPersistenceActor = actorSystem.actorOf(Props[TransactionsPersistanceService], "transactionsPersistenceService")
+  val transactionsRetrievalActor = actorSystem.actorOf(Props[TransactionsRetrievalService], "transactionsRetrievalService")
+
   val transactionRoutes: Route =
     path("transactions") {
       get {
@@ -79,4 +87,12 @@ object TransactionController extends Marshaller {
         }
       }
     }
+
+  override def receive: Receive = {
+    case TransactionRoutes => sender() ! transactionRoutes
+  }
+}
+
+object TransactionController {
+  case object TransactionRoutes
 }

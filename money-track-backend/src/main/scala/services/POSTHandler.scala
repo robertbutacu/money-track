@@ -1,14 +1,18 @@
 package services
 
+import java.text.SimpleDateFormat
 import java.util.Date
 
 import com.mongodb.WriteResult
 import com.mongodb.casbah.Imports._
 import models.{Common, Transaction}
 import grizzled.slf4j.Logging
-import server.Routes.{getCurrentDate, logger}
+import marshaller.Marshaller
 
-object POSTHandler extends Logging {
+object POSTHandler extends Marshaller with Logging {
+  lazy val loggingDateFormatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss")
+  def getCurrentDate(): String = loggingDateFormatter.format(new Date())
+
   def weeklyExpenses(): Unit = {
     logger.info(s"[ ${getCurrentDate()} ] *** Persisting weekly expenses")
 

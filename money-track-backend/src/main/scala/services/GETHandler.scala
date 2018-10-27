@@ -7,9 +7,12 @@ import java.util.Date
 import com.mongodb.casbah.Imports._
 import models.{Amount, Common, Transaction}
 import grizzled.slf4j.Logging
-import server.Routes.getCurrentDate
+import marshaller.Marshaller
 
-object GETHandler extends Logging {
+object GETHandler extends Logging with Marshaller {
+  lazy val loggingDateFormatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss")
+  def getCurrentDate(): String = loggingDateFormatter.format(new Date())
+
   def getForLastNDaysWithoutBills(n: Int): Transactions = {
     logger.info(s"[ ${getCurrentDate()} ] *** Retrieving transactions without bills for last $n days.")
 

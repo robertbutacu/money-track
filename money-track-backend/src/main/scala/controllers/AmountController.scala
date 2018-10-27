@@ -1,13 +1,20 @@
 package controllers
 
+import akka.actor.{Actor, ActorSystem, Props}
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import controllers.AmountController.AmountRoutes
 import marshaller.Marshaller
 import models.Common._
 import services.GETHandler
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import services.amount.AmountRetrievalService
 
-object AmountController extends Marshaller {
+import scala.concurrent.ExecutionContext
+
+class AmountController(actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) extends Marshaller with Actor {
+  val amountRetrievalActor = actorSystem.actorOf(Props(new AmountRetrievalService(actorSystem)), "amountRetrievalService")
+
   val amountRoutes: Route =
     path("amount") {
       get {
@@ -62,4 +69,12 @@ object AmountController extends Marshaller {
         }
       }
     }
+
+  override def receive: Receive = {
+    case AmountRoutes => sender() ! amountRoutes
+  }
+}
+
+object AmountController {
+  case object AmountRoutes
 }

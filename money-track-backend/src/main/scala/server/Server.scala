@@ -1,9 +1,11 @@
 package server
 
-import akka.actor.ActorSystem
+import java.util.concurrent.TimeUnit
+
+import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
-import server.Routes.route
+import akka.util.Timeout
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.io.StdIn
@@ -14,8 +16,10 @@ object Server {
     implicit val materializer: ActorMaterializer = ActorMaterializer()
     // needed for the future flatMap/onComplete in the end
     implicit val executionContext: ExecutionContextExecutor = system.dispatcher
+    implicit val timeout = Timeout(5, TimeUnit.SECONDS)
+    val routeActor = new Routes(system)
 
-    val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
+    val bindingFuture = Http().bindAndHandle(routeActor.routes, "localhost", 8080)
 
     println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
     StdIn.readLine() // let it run until user presses return
