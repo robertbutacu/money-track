@@ -73,5 +73,7 @@ class AmountRetrievalService(system: ActorSystem) extends Actor with Logging {
     Amount(transactions.foldLeft(0.0)((acc, curr) => acc + curr.amount))
 */
 
-  override def receive: Receive = ???
+  override def receive: Receive = {
+    case _ => logger.info("Received message in transactions retrieval")
+  }
 }

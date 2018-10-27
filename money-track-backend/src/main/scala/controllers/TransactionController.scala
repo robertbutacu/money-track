@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext
 
 class TransactionController(actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) extends Marshaller with Actor {
   val transactionsPersistenceActor = actorSystem.actorOf(Props[TransactionsPersistanceService], "transactionsPersistenceService")
-  val transactionsRetrievalActor = actorSystem.actorOf(Props[TransactionsRetrievalService], "transactionsRetrievalService")
+  val transactionsRetrievalActor = actorSystem.actorOf(Props[TransactionsRetrievalService], "transactionsService")
 
   val transactionRoutes: Route =
     path("transactions") {
@@ -72,7 +72,7 @@ class TransactionController(actorSystem: ActorSystem)(implicit executionContext:
       }
     } ~ path("transactions" / "monthly") {
       post {
-        entity(as[Unit]) { _ =>
+        requestEntityEmpty {
           POSTHandler.monthlyExpenses()
 
           complete(StatusCodes.OK)
@@ -80,7 +80,7 @@ class TransactionController(actorSystem: ActorSystem)(implicit executionContext:
       }
     } ~ path("transactions" / "weekly") {
       post {
-        entity(as[Unit]) { _ =>
+        requestEntityEmpty {
           POSTHandler.weeklyExpenses()
 
           complete(StatusCodes.OK)

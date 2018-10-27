@@ -87,7 +87,9 @@ class TransactionsRetrievalService extends Actor with Logging {
   private def convertToList(l: Iterable[DBObject]): Transactions =
     l.toList.map(Common.fromMongoDbObject)
 
-  override def receive: Receive = ???
+  override def receive: Receive = {
+    case _ => logger.info("Received message in transactions retrieval")
+  }
 }
 
 object TransactionsRetrievalService {
