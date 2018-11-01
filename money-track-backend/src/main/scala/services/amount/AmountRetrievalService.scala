@@ -6,20 +6,26 @@ import java.util.Date
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.pattern.ask
+import akka.util.Timeout
+import cats.data.Writer
 import grizzled.slf4j.Logging
 import models.{Amount, Transaction}
 import services.transaction.TransactionsRetrievalService
 import services.transaction.TransactionsRetrievalService._
+import cats.syntax.WriterSyntax
+import cats.instances._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AmountRetrievalService(system: ActorSystem) extends Actor with Logging {
+class AmountRetrievalService(system: ActorSystem)(implicit timeout: Timeout) extends Actor with Logging {
 
   //TODO use Writer monad to log into for comprehensions
   val transactionRetrievalActor = system.actorOf(Props[TransactionsRetrievalService], name = "transactionsRetrievalService")
   lazy val loggingDateFormatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss")
 
   def getCurrentDate(): String = loggingDateFormatter.format(new Date())
+
+  def execute[A](log: A => String, f: => A): Writer[Unit, A] = Writer(logger.info(log(f)), f)
 
   type Transactions = List[Transaction]
 
@@ -36,10 +42,8 @@ class AmountRetrievalService(system: ActorSystem) extends Actor with Logging {
     logger.info(s"[${getCurrentDate()} *** Trying to get remaining budget")
     for {
       transactions <- (transactionRetrievalActor ? GetTransactionsByPeriod(start, end)).mapTo[Transactions]
-      result = transactions.filterNot(_.isBill)
-      amountSpent = gatherAmount(result).amount
-      logger.info(s"[${getCurrentDate()} ] *** Found $transactions.")
-      logger.info(s"[ ${getCurrentDate()} ] *** Amount spent ups to $amountSpent.")
+      result       <- execute((t: Transactions) => s"[${getCurrentDate()} ] *** Found $t", transactions.filterNot(_.isBill))
+      amountSpent  <- execute((s: Double) => s"[ ${getCurrentDate()} ] *** Amount spent ups to $s.", gatherAmount(result).amount)
     } yield Amount(limit - amountSpent)
   }
 
@@ -48,8 +52,7 @@ class AmountRetrievalService(system: ActorSystem) extends Actor with Logging {
 
     for {
       transactions <- (transactionRetrievalActor ? GetByDay(day)).mapTo[Transactions]
-      amount = gatherAmount(transactions)
-      logger.info(s"[ ${getCurrentDate()} ] *** Found amount: ${amount.amount}")
+      amount       <- execute((a: Amount) => s"[ ${getCurrentDate()} ] *** Found amount: $a", gatherAmount(transactions))
     } yield amount
   }
 
@@ -78,8 +81,7 @@ class AmountRetrievalService(system: ActorSystem) extends Actor with Logging {
 
     for {
       transactions <- (transactionRetrievalActor ? GetTransactionsByPeriod(start, end)).mapTo[Transactions]
-      amount = gatherAmount(transactions)
-      logger.info(s"[ ${getCurrentDate()} ] *** Extract amount from the database ${amount.amount}")
+      amount <- execute((a: Amount)=> s"[ ${getCurrentDate()} ] *** Extract amount from the database $a", gatherAmount(transactions))
     } yield amount
   }
 

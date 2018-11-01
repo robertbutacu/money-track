@@ -4,6 +4,7 @@ import akka.actor.{Actor, ActorSystem, Props}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.util.Timeout
 import controllers.AmountController.AmountRoutes
 import marshaller.Marshaller
 import services.GETHandler
@@ -12,7 +13,7 @@ import models.Common.stringToDateFormatter
 
 import scala.concurrent.ExecutionContext
 
-class AmountController(actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) extends Marshaller with Actor {
+class AmountController(actorSystem: ActorSystem)(implicit executionContext: ExecutionContext, timeout: Timeout) extends Marshaller with Actor {
   val amountRetrievalActor = actorSystem.actorOf(Props(new AmountRetrievalService(actorSystem)), "amountRetrievalService")
 
   val amountRoutes: Route =

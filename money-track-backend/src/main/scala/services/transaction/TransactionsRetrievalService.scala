@@ -5,6 +5,7 @@ import java.time.LocalDate
 import java.util.Date
 
 import akka.actor.Actor
+import cats.data.Writer
 import com.mongodb.casbah.Imports.{DBObject, _}
 import grizzled.slf4j.Logging
 import models.{Amount, Common, Transaction}
@@ -17,13 +18,15 @@ class TransactionsRetrievalService extends Actor with Logging {
 
   def getCurrentDate: String = loggingDateFormatter.format(new Date())
 
+  def execute[A](log: A => String, f: => A): Writer[Unit, A] = Writer(logger.info(log(f)), f)
+
   type Transactions = List[Transaction]
 
   def getForLastNDaysWithoutBills(n: Int)(implicit ec: ExecutionContext): Future[Transactions] =
     for {
       transactions <- getTransactionsForLastNDays(n)
-      logger.info(s"[ $getCurrentDate ] *** Retrieving transactions without bills for last $n days.")
-    } yield transactions.filterNot(_.isBill)
+      result       <- execute((_: Transactions) => s"[ $getCurrentDate ] *** Retrieving transactions without bills for last $n days.", transactions.filterNot(_.isBill))
+    } yield result
 
   def getByDay(day: Date)(implicit ec: ExecutionContext): Future[Transactions] = Future {
     val toFindRecord = new SimpleDateFormat("dd-MM-yyyy").format(day)
@@ -42,14 +45,14 @@ class TransactionsRetrievalService extends Actor with Logging {
     val end = java.sql.Date.valueOf(LocalDate.now.plusDays(1))
     val start = java.sql.Date.valueOf(LocalDate.now.minusDays(n))
 
-    logger.info(s"[ ${getCurrentDate()} ] *** Extracting transactions for the last $n days.")
+    logger.info(s"[ $getCurrentDate ] *** Extracting transactions for the last $n days.")
 
     getTransactionsByPeriod(start, end)
   }
 
   def getTransactionsByPeriod(start: Date, end: Date)(implicit ec: ExecutionContext): Future[Transactions] = Future {
 
-    logger.info(s"[ ${getCurrentDate()} ] *** Trying to find transactions by interval: $start -> $end")
+    logger.info(s"[ $getCurrentDate ] *** Trying to find transactions by interval: $start -> $end")
 
     val results = MongoFactory.collection.filter { record =>
       val transactionDate = record.getAs[String]("date")
@@ -62,7 +65,7 @@ class TransactionsRetrievalService extends Actor with Logging {
 
     val transactions = convertToList(results)
 
-    logger.info(s"[ ${getCurrentDate()} ] *** Found transactions: $transactions")
+    logger.info(s"[ $getCurrentDate ] *** Found transactions: $transactions")
 
     convertToList(results)
   }
@@ -73,13 +76,8 @@ class TransactionsRetrievalService extends Actor with Logging {
   def getByCategory(category: String)(implicit ec: ExecutionContext): Future[Transactions] =
     getTransactionsByField("category", category)
 
-  private def gatherAmount(transactions: Transactions)(implicit ec: ExecutionContext): Future[Amount] =
-    Future {
-      Amount(transactions.foldLeft(0.0)((acc, curr) => acc + curr.amount))
-    }
-
   private def getTransactionsByField(field: String, value: String)(implicit ec: ExecutionContext): Future[Transactions] = Future {
-    logger.info(s"[ ${getCurrentDate()} ] *** Getting transactions by field: $field")
+    logger.info(s"[ $getCurrentDate ] *** Getting transactions by field: $field")
 
     val transactions = MongoFactory.collection.filter { record =>
       val recordProductName = record.getAs[String](field)
