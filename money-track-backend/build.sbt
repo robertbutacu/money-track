@@ -8,7 +8,8 @@ libraryDependencies ++= {
   val akkaActorVersion = "2.5.17"
 
   Seq(
-    "org.scalactic" %% "scalactic" % "3.0.4",
+    "org.typelevel" %% "cats-core" % "1.4.0",
+  "org.scalactic" %% "scalactic" % "3.0.4",
     "org.scalatest" %% "scalatest" % "3.0.4" % "test",
     "org.scalamock" %% "scalamock" % "4.0.0" % Test,
     "com.typesafe" % "config" % "1.3.2",
