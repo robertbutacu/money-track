@@ -1,5 +1,9 @@
 package models
 
-import java.util.Date
+import java.time.Instant
 
-case class Transaction(name: String, category: Option[String] = None, amount: Double = 0.0, date: Option[Date], isBill: Boolean = false)
+case class Transaction(name: String,
+                       amount: Double = 0.0,
+                       category: Option[String] = None,
+                       date: Option[Instant] = Option(Instant.now),
+                       isBill: Boolean = false)
